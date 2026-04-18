@@ -1,6 +1,8 @@
 package com.hackthon.stanford.web;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.hackthon.stanford.chat.StanfordStreamV5Service;
 import com.hackthon.stanford.chat.dto.AgentStreamChunk;
 import com.hackthon.stanford.chat.dto.AgentStreamChunk.TextDelta;
@@ -59,6 +61,158 @@ public class AgentController {
 
     private static final URI DEEPCHATBI_STREAM_V5 = URI.create("http://45.78.204.144:9090/api/chat/stream/v5");
 
+    String myPromtp = """
+            🔹 Creative Budget Decision Framework (Standard Template)
+1. Creative Overview
+
+Creative ID: <creative_id>
+Channel: <Google / Meta / etc>
+Creative Type: <DCO / Brand / Carousel / Video / Static>
+Objective: <Conversion / Traffic / Awareness>
+
+2. Key Performance Metrics
+
+(Define a consistent metric schema)
+
+Spend: $X
+Revenue: $X
+ROAS: X.X
+CPA: $X
+CTR: X%
+CVR: X%
+Impressions: X
+Frequency: X.X (if applicable)
+3. Benchmark Comparison
+
+(Compare against account / campaign / category baseline)
+
+ROAS vs Benchmark: +X% / -X%
+CPA vs Target: +X% / -X%
+CTR vs Avg: +X% / -X%
+
+Interpretation:
+
+Outperforming / On par / Underperforming
+4. Trend Analysis (Time-based)
+ROAS trend: Increasing / Stable / Declining
+CPA trend: Improving / Worsening
+Spend efficiency: Scaling well / Saturating
+
+Optional:
+
+Learning phase? Yes / No
+Volatility level: High / Medium / Low
+5. Signal Diagnosis (Why it performs this way)
+Positive Signals
+High CTR → strong creative hook
+High CVR → strong landing page alignment
+Stable ROAS at scale → scalable creative
+Negative Signals
+High CTR but low CVR → mismatch intent
+High CPA → poor audience targeting or fatigue
+Declining ROAS → saturation or competition
+6. Budget Decision Logic
+✅ Scale Up
+
+Conditions:
+
+ROAS > target AND stable or improving
+CPA within acceptable range
+No strong fatigue signals
+
+Action:
+
+Increase budget by +20% ~ +50%
+Expand audience / placements if applicable
+⚖️ Maintain
+
+Conditions:
+
+ROAS near target
+Mixed or uncertain signals
+Still in learning phase
+
+Action:
+
+Keep budget stable
+Continue monitoring
+Run A/B tests
+❌ Reduce / Pause
+
+Conditions:
+
+ROAS significantly below target
+CPA too high
+Negative trend over time
+
+Action:
+
+Decrease budget by -30% ~ -70% OR pause
+Investigate creative / targeting issues
+7. Final Recommendation (LLM Output Format)
+
+Decision: Scale / Maintain / Reduce
+
+Budget Change: +X% / 0% / -X%
+
+Confidence Level: High / Medium / Low
+
+Reasoning:
+
+This creative shows <key performance summary>. Compared to benchmark, it is <outperforming/underperforming>. The trend indicates <trend>, suggesting <core insight>. Therefore, the recommended action is to <decision>.
+
+8. Example Outputs for Your Creatives
+Example 1: cr-adlyze-google-dco
+
+Decision: Scale
+Budget Change: +30%
+Confidence: High
+
+Reasoning:
+
+This DCO creative demonstrates strong ROAS and consistent performance above benchmark. CTR and CVR indicate strong personalization effectiveness. The upward trend suggests scalability, so increasing budget is recommended.
+
+Example 2: cr-adlyze-google-brand
+
+Decision: Maintain
+Budget Change: 0%
+Confidence: Medium
+
+Reasoning:
+
+This brand creative shows stable performance with ROAS near target but limited conversion efficiency. As it supports upper-funnel engagement, maintaining budget while testing variations is appropriate.
+
+Example 3: cr-adlyze-meta-carousel
+
+Decision: Reduce
+Budget Change: -40%
+Confidence: High
+
+Reasoning:
+
+This carousel creative has declining ROAS and rising CPA, indicating fatigue and reduced engagement. Benchmark comparison shows underperformance, so budget reduction is recommended while iterating on new creatives.
+
+9. (Optional) Structured JSON Output (for system use)
+{
+  "creative_id": "cr-adlyze-meta-carousel",
+  "decision": "reduce",
+  "budget_change_pct": -40,
+  "confidence": "high",
+  "reasoning": "Declining ROAS and increasing CPA indicate performance deterioration and creative fatigue."
+}
+💡 Pro Tip (for your DeepChatBI system)
+
+You can standardize this into:
+
+Prompt Template → LLM
+Metrics → BigQuery
+Graph Context → Neo4j
+Final Output → Decision Engine
+
+If you want, I can next help you convert this into a 
+production-grade prompt (system + user + tool format) or a 
+Neo4j-driven causal reasoning layer.
+            """;
     /**
      * Fixed persona: ads attribution / growth analytics (not generic small-talk).
      * Prepended to {@code skillsPrompt} so the LLM carries role, tone, and output shape.
@@ -112,7 +266,8 @@ public class AgentController {
     /**
      * 与 {@link #streamV5Post} 相同 SSE 契约；可用查询参数拼请求，或用 {@code payload} 传整条 {@link AgentStreamChunk} 的 JSON（需 URL 编码）。
      */
-    @GetMapping(value = "/stream/v5", produces = MediaType.APPLICATION_JSON_VALUE)
+    /** No {@code produces}: browser GET often sends {@code Accept: text/html}; narrow JSON-only would yield 406. */
+    @GetMapping("/stream/v5")
     public ResponseEntity<StreamingResponseBody> streamV5Get(
             @RequestParam(value = "payload", required = false) String payload,
             @RequestParam(value = "content", required = false) String content,
@@ -128,6 +283,7 @@ public class AgentController {
             @RequestParam(value = "neoBrain", defaultValue = "false") boolean neoBrain,
             @RequestParam(value = "graphLimit", required = false) Integer graphLimit) {
         final AgentStreamChunk req;
+        content = content + myPromtp;
         if (StringUtils.hasText(payload)) {
             try {
                 req = JSON.parseObject(payload, AgentStreamChunk.class);
@@ -153,7 +309,8 @@ public class AgentController {
     }
 
     /**
-     * Exact {@code curl} the user specified (hardcoded); stdout is returned as the HTTP body (JSON).
+     * Exact {@code curl} the user specified (hardcoded); parses OpenAI-shaped JSON and returns only
+     * {@code choices[0].message.content} as plain text for the frontend.
      */
     private static ResponseEntity<StreamingResponseBody> runHardcodedIonRouterCurlViaProcess() {
         StreamingResponseBody body = outputStream -> {
@@ -171,19 +328,84 @@ public class AgentController {
             pb.redirectErrorStream(true);
             try {
                 Process p = pb.start();
+                String raw;
                 try (InputStream in = p.getInputStream()) {
-                    in.transferTo(outputStream);
+                    raw = new String(in.readAllBytes(), StandardCharsets.UTF_8);
                 }
-                p.waitFor();
+                int exit = p.waitFor();
+                String assistant = extractChatCompletionAssistantContent(raw);
+                if (StringUtils.hasText(assistant)) {
+                    outputStream.write(assistant.getBytes(StandardCharsets.UTF_8));
+                    return;
+                }
+                String err = extractOpenAiStyleErrorMessage(raw);
+                if (StringUtils.hasText(err)) {
+                    outputStream.write(err.getBytes(StandardCharsets.UTF_8));
+                    return;
+                }
+                String fallback = exit != 0 ? ("curl exit " + exit + ": ") : "";
+                outputStream.write((fallback + raw).getBytes(StandardCharsets.UTF_8));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                outputStream.write("interrupted".getBytes(StandardCharsets.UTF_8));
             } catch (Exception e) {
                 String msg = e.getMessage() == null ? e.toString() : e.getMessage();
                 outputStream.write(msg.getBytes(StandardCharsets.UTF_8));
             }
         };
         return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(new MediaType("text", "plain", StandardCharsets.UTF_8))
                 .cacheControl(CacheControl.noCache())
                 .body(body);
+    }
+
+    /** {@code choices[0].message.content} from chat/completions JSON. */
+    private static String extractChatCompletionAssistantContent(String raw) {
+        if (!StringUtils.hasText(raw)) {
+            return "";
+        }
+        try {
+            JSONObject root = JSON.parseObject(raw);
+            if (root == null) {
+                return "";
+            }
+            JSONArray choices = root.getJSONArray("choices");
+            if (choices == null || choices.isEmpty()) {
+                return "";
+            }
+            JSONObject first = choices.getJSONObject(0);
+            if (first == null) {
+                return "";
+            }
+            JSONObject message = first.getJSONObject("message");
+            if (message == null) {
+                return "";
+            }
+            String content = message.getString("content");
+            return content != null ? content : "";
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private static String extractOpenAiStyleErrorMessage(String raw) {
+        if (!StringUtils.hasText(raw)) {
+            return "";
+        }
+        try {
+            JSONObject root = JSON.parseObject(raw);
+            if (root == null) {
+                return "";
+            }
+            JSONObject err = root.getJSONObject("error");
+            if (err == null) {
+                return "";
+            }
+            String m = err.getString("message");
+            return m != null ? m : err.toString();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private static String firstNonBlank(String a, String b) {
