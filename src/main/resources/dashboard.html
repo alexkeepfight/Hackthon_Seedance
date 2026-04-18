@@ -488,7 +488,12 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    max-height: 220px;
+    overflow-y: auto;
   }
+  .chat-thinking-body::-webkit-scrollbar { width: 6px; }
+  .chat-thinking-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+  .chat-thinking-body::-webkit-scrollbar-track { background: transparent; }
   .chat-thinking-line {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -1425,10 +1430,44 @@ function isSkippableTelemetry(o) {
   return false;
 }
 
+function isDeepChatBiPlainDataEnvelope(o) {
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return false;
+  if (typeof o.plainData !== 'string') return false;
+  // DeepChatBI-style SSE envelopes usually carry these fields.
+  if (o.type != null || o.phase != null) return false;
+  return (o.sessionId != null || o.agentName != null);
+}
+
+function looksLikeToolLogLine(s) {
+  const t = String(s || '').trimStart();
+  if (!t) return false;
+  if (t.startsWith('[Tool ')) return true;
+  if (t.startsWith('[chat_report]')) return true;
+  if (t.startsWith('[Tool call]')) return true;
+  if (t.startsWith('[Tool round]')) return true;
+  // Common agent log prefixes
+  if (t.startsWith('Embed session:')) return true;
+  if (t.startsWith('SQL ') || t.startsWith('SQL执行') || t.startsWith('SQL 生成')) return true;
+  return false;
+}
+
 function dispatchStreamChunk(o, depth, rid) {
   const ctx = activeStreamAssistantCtx;
   if (!ctx || ctx.requestId !== rid || !o || typeof o !== 'object') return;
   if (depth > 8) return;
+
+  // DeepChatBI API passthrough: upstream sends full JSON with `plainData`.
+  // We only surface `plainData` (tool-ish lines into Thinking; others into Answer stream).
+  if (isDeepChatBiPlainDataEnvelope(o)) {
+    const pd = String(o.plainData || '');
+    if (!pd.trim()) return;
+    if (looksLikeToolLogLine(pd)) {
+      pushThinkingLine(pd.trim());
+    } else {
+      appendAnswerDeltaText(pd, rid);
+    }
+    return;
+  }
 
   if (typeof o.errorMessage === 'string' && o.errorMessage.length) {
     setAnswerError(o.errorMessage);
@@ -1635,6 +1674,7 @@ async function streamAgentFromApi() {
   const rid = ++streamRequestSeq;
   if (streamAgentAbort) streamAgentAbort.abort();
   streamAgentAbort = new AbortController();
+  
 
   addUserMessage(content);
   if (ta) ta.value = '';
