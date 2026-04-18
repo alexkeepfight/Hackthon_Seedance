@@ -107,7 +107,7 @@
 
   .chatbi-column {
     width: 100%;
-    max-width: 920px;
+    max-width: 100%;
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
@@ -287,7 +287,7 @@
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     line-height: 1.65;
-    color: #e8edf7;
+    color: var(--text);
   }
   .chat-answer-muted {
     margin: 0;
@@ -388,7 +388,7 @@
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 12px;
-    color: #e2e8f0;
+    color: var(--text);
     font-family: 'Inter', sans-serif;
     font-size: 13px;
     padding: 12px 14px;
@@ -427,8 +427,8 @@
     padding: 10px 14px;
     border-radius: 10px;
     border: 1px solid #2a3f66;
-    background: linear-gradient(180deg, #121a2a 0%, #0a0f18 100%);
-    color: #8a9bb8;
+    background: var(--surface2);
+    color: var(--text);
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     font-weight: 700;
@@ -493,28 +493,28 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .md-h { font-weight: 700; color: #f1f5ff; margin: 14px 0 8px; line-height: 1.3; }
+  .md-h { font-weight: 700; color: var(--text); margin: 14px 0 8px; line-height: 1.3; }
   .md-h:first-child { margin-top: 0; }
   h2.md-h { font-size: 15px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
   h3.md-h { font-size: 14px; color: var(--accent); }
   .md-p { margin: 0 0 10px; }
-  .md-list { margin: 8px 0 12px 18px; padding: 0; color: #b8c5dc; }
+  .md-list { margin: 8px 0 12px 18px; padding: 0; color: var(--text); }
   .md-list li { margin: 4px 0; }
   .md-code {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
-    background: #121a2a;
+    background: #0b122020;
     border: 1px solid var(--border);
     padding: 1px 6px;
     border-radius: 4px;
-    color: #7dd3fc;
+    color: #0f172a;
   }
   .md-fence {
     margin: 12px 0;
     padding: 12px 14px;
     border-radius: 8px;
-    background: #060a12;
-    border: 1px solid #1e3a5f;
+    background: #0b122010;
+    border: 1px solid var(--border);
     overflow-x: auto;
   }
   .md-fence::before {
@@ -532,7 +532,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 11.5px;
     line-height: 1.55;
-    color: #a5f3c4;
+    color: var(--text);
     white-space: pre;
     display: block;
   }
