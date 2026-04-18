@@ -149,8 +149,8 @@ public class AgentController {
         }
         AgentStreamChunk effective = applySreLayers(req, sreBrain);
         log.info("/stream/v5 GET -> chunk: {}", JSON.toJSONString(effective));
-        if (true) {
-            log.info("调用streamViaDeepChatBiApi: {}", JSON.toJSONString(effective));
+        if (deepChatBiApi) {
+            log.info("streamViaDeepChatBiApi (GET): {}", JSON.toJSONString(effective));
             return streamViaDeepChatBiApi(effective);
         }
         boolean augmentGraph = graphRag || neoBrain;
@@ -159,6 +159,31 @@ public class AgentController {
 
     private static String firstNonBlank(String a, String b) {
         return StringUtils.hasText(a) ? a : b;
+    }
+
+    /** Client disconnect or Spring async timeout interrupts the pump thread — not an upstream bug. */
+    private static boolean isBenignProxyStreamEnd(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof InterruptedException) {
+                return true;
+            }
+        }
+        if (e instanceof IOException io) {
+            String m = io.getMessage() == null ? "" : io.getMessage();
+            if (m.contains("InterruptedException")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasInterruptedCause(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof InterruptedException) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -213,9 +238,20 @@ public class AgentController {
                     }
                 }
             } catch (Exception e) {
+                if (isBenignProxyStreamEnd(e)) {
+                    if (hasInterruptedCause(e)) {
+                        Thread.currentThread().interrupt();
+                    }
+                    log.debug("DeepChatBIAPI proxy ended early: {}", e.toString());
+                    return;
+                }
                 String msg = e.getMessage() == null ? e.toString() : e.getMessage();
                 log.warn("DeepChatBIAPI proxy failed", e);
-                writeSseEvent(outputStream, AgentStreamChunk.createErrorEvent("DeepChatBIAPI", msg));
+                try {
+                    writeSseEvent(outputStream, AgentStreamChunk.createErrorEvent("DeepChatBIAPI", msg));
+                } catch (Exception ignored) {
+                    /* response may already be committed / client gone */
+                }
             }
         };
 
