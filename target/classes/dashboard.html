@@ -3,21 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>广告预算智能 · ChatBI</title>
+<title>AdMaster</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
   .mono { font-family: 'JetBrains Mono', monospace; }
 
   :root {
-    --bg: #060910;
-    --surface: #0d1525;
-    --surface2: #0a0f18;
-    --border: #1e2d4a;
-    --text: #e8edf7;
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #f8fafc;
+    --border: #e2e8f0;
+    --text: #0f172a;
     --muted: #64748b;
-    --accent: #06b6d4;
-    --accent2: #00e676;
+    --accent: #0284c7;
+    --accent2: #059669;
+    --shadow: 0 4px 24px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,13 +37,14 @@
   .app-header {
     flex-shrink: 0;
     height: 56px;
-    padding: 0 20px;
+    padding: 0 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, #0d1525 0%, var(--bg) 100%);
+    background: var(--surface);
     z-index: 50;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   }
   .app-header__brand {
     display: flex;
@@ -51,14 +53,13 @@
   }
   .app-logo {
     font-size: 22px;
-    filter: drop-shadow(0 0 8px #06b6d466);
   }
   .app-title {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: 15px;
-    color: var(--accent);
-    letter-spacing: -0.02em;
+    font-size: 18px;
+    color: var(--text);
+    letter-spacing: -0.03em;
   }
   .app-sub {
     font-size: 11px;
@@ -84,9 +85,9 @@
     color: var(--muted);
   }
   .pill--ok {
-    border-color: #00e67644;
-    color: #34d399;
-    background: #00e67612;
+    border-color: #bbf7d0;
+    color: #047857;
+    background: #ecfdf5;
   }
 
   /* KPI */
@@ -95,9 +96,9 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
-    padding: 12px 20px;
+    padding: 12px 24px;
     border-bottom: 1px solid var(--border);
-    background: rgba(13, 21, 37, 0.6);
+    background: var(--surface);
   }
   .kpi-card {
     border: 1px solid var(--border);
@@ -119,7 +120,7 @@
     font-family: 'JetBrains Mono', monospace;
     color: var(--text);
   }
-  .kpi-card__val.cyan { color: #22d3ee; }
+  .kpi-card__val.cyan { color: var(--accent); }
   .kpi-card__row {
     display: flex;
     align-items: baseline;
@@ -130,61 +131,54 @@
   .kpi-div { color: var(--muted); }
   .kpi-status { font-size: 13px !important; color: var(--muted); }
 
-  /* WORKSPACE */
+  /* WORKSPACE — centered large chat, insights below */
   .workspace {
     flex: 1;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 360px;
-    gap: 0;
-    min-height: 0;
-  }
-  @media (max-width: 1080px) {
-    .workspace {
-      grid-template-columns: 1fr;
-      grid-template-rows: minmax(280px, 55vh) auto;
-      overflow-y: auto;
-    }
-    .insights-column {
-      border-left: none !important;
-      border-top: 1px solid var(--border);
-      max-height: 42vh;
-    }
-  }
-
-  /* CHATBI MAIN */
-  .chatbi-column {
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    align-items: center;
     min-height: 0;
-    padding: 14px 16px 18px;
+    padding: 20px 24px 24px;
+    gap: 16px;
+    overflow-y: auto;
   }
+
+  .chatbi-column {
+    width: 100%;
+    max-width: 920px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   .chatbi-card {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
+    min-height: min(520px, 52vh);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    background: linear-gradient(165deg, #0f1729 0%, #0a0f18 50%, #080d18 100%);
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
     overflow: hidden;
   }
   .chatbi-card__head {
     flex-shrink: 0;
-    padding: 16px 18px 14px;
+    padding: 18px 22px 16px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    background: rgba(6, 9, 16, 0.45);
+    background: var(--surface2);
   }
   .chatbi-title {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--text);
     letter-spacing: -0.03em;
     line-height: 1.2;
   }
@@ -193,7 +187,7 @@
     font-size: 13px;
     color: var(--muted);
     line-height: 1.55;
-    max-width: 52ch;
+    max-width: 56ch;
   }
   .chip {
     flex-shrink: 0;
@@ -201,9 +195,9 @@
     font-size: 10px;
     padding: 6px 10px;
     border-radius: 8px;
-    border: 1px solid #6366f144;
-    background: #6366f118;
-    color: #a5b4fc;
+    border: 1px solid #bae6fd;
+    background: #f0f9ff;
+    color: #0369a1;
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
@@ -212,39 +206,46 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 14px 14px 12px;
+    padding: 16px 18px 14px;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background: #060910;
+    background: #fafbfc;
   }
 
   .chatbi-composer {
     flex-shrink: 0;
     border-top: 1px solid var(--border);
-    padding: 12px 14px 14px;
+    padding: 14px 18px 16px;
     background: var(--surface);
   }
 
-  /* INSIGHTS COLUMN */
   .insights-column {
-    border-left: 1px solid var(--border);
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
+    width: 100%;
+    max-width: 960px;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 14px;
+    flex-shrink: 0;
     min-height: 0;
-    overflow: hidden;
+  }
+  @media (max-width: 900px) {
+    .insights-column {
+      grid-template-columns: 1fr;
+    }
   }
   .insight-block {
-    padding: 14px 14px 16px;
-    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 16px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
     min-height: 0;
   }
   .insight-block--graph {
-    flex: 1;
-    min-height: 200px;
+    min-height: 300px;
   }
   .insight-heading {
     font-family: 'JetBrains Mono', monospace;
@@ -265,7 +266,7 @@
     min-height: 280px;
     border-radius: 12px;
     border: 1px solid var(--border);
-    background: #050810;
+    background: #eef2f7;
     overflow: hidden;
   }
   #graph-container {
@@ -423,9 +424,9 @@
     max-width: 88%;
     padding: 10px 14px;
     border-radius: 14px 14px 4px 14px;
-    background: linear-gradient(135deg, #0c4a6e 0%, #0e7490 100%);
-    border: 1px solid #22d3ee44;
-    color: #ecfeff;
+    background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+    border: 1px solid #bae6fd;
+    color: #f0f9ff;
     font-size: 13px;
     line-height: 1.5;
     white-space: pre-wrap;
@@ -437,7 +438,7 @@
     border-radius: 12px;
     background: var(--surface);
     border: 1px solid var(--border);
-    color: #c8d4eb;
+    color: var(--text);
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     line-height: 1.65;
@@ -449,13 +450,13 @@
     width: 100%;
     border-radius: 14px;
     border: 1px solid var(--border);
-    background: linear-gradient(165deg, #0f1729 0%, #0a0f18 55%, #0c1220 100%);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    background: var(--surface);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
     overflow: hidden;
   }
   .chat-thinking-details {
     border-bottom: 1px solid var(--border);
-    background: rgba(6, 9, 16, 0.65);
+    background: var(--surface2);
   }
   .chat-thinking-summary {
     list-style: none;
@@ -843,6 +844,7 @@
               <label><input type="checkbox" id="opt-graph-rag" checked /> graphRag（图谱增强）</label>
               <label><input type="checkbox" id="opt-neo-brain" /> neoBrain</label>
               <label><input type="checkbox" id="opt-sre-brain" /> sreBrain（遗留 playbook）</label>
+              <label><input type="checkbox" id="opt-deepchatbi-api" /> DeepChatBIAPI（远程）</label>
             </div>
           </div>
         </details>
@@ -1620,6 +1622,8 @@ async function streamAgentFromApi() {
   params.set('graphRag', document.getElementById('opt-graph-rag').checked ? 'true' : 'false');
   params.set('neoBrain', document.getElementById('opt-neo-brain').checked ? 'true' : 'false');
   params.set('sreBrain', document.getElementById('opt-sre-brain').checked ? 'true' : 'false');
+  const deepEl = document.getElementById('opt-deepchatbi-api');
+  if (deepEl && deepEl.checked) params.set('deepChatBiApi', 'true');
   const gl = document.getElementById('graph-limit');
   if (gl && gl.value !== '') {
     const n = parseInt(gl.value, 10);

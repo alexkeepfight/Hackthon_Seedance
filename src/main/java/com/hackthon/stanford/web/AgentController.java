@@ -25,10 +25,16 @@ import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * 广告归因 Agent 网关：所有 {@code /api/chat/stream/v5} 请求在下游执行前会注入 {@link #ADS_ATTRIBUTION_IDENTITY} 人格（DeepChatBI 风格 / 投放与归因）。
@@ -50,6 +56,8 @@ import java.time.Duration;
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
 public class AgentController {
+
+    private static final URI DEEPCHATBI_STREAM_V5 = URI.create("http://45.78.204.144:9090/api/chat/stream/v5");
 
     /**
      * Fixed persona: ads attribution / growth analytics (not generic small-talk).
@@ -87,11 +95,15 @@ public class AgentController {
     @PostMapping(value = "/stream/v5", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<StreamingResponseBody> streamV5Post(
             @RequestBody(required = false) AgentStreamChunk req,
+            @RequestParam(value = "deepChatBiApi", defaultValue = "false") boolean deepChatBiApi,
             @RequestParam(value = "sreBrain", defaultValue = "false") boolean sreBrain,
             @RequestParam(value = "graphRag", defaultValue = "true") boolean graphRag,
             @RequestParam(value = "neoBrain", defaultValue = "false") boolean neoBrain,
             @RequestParam(value = "graphLimit", required = false) Integer graphLimit) {
         log.info("/stream/v5 POST body: {}", req == null ? "null" : JSON.toJSONString(req));
+        if (deepChatBiApi) {
+            return streamViaDeepChatBiApi(req);
+        }
         AgentStreamChunk effective = applySreLayers(req, sreBrain);
         boolean augmentGraph = graphRag || neoBrain;
         return streamV5Entity(effective, augmentGraph, graphLimit);
@@ -110,6 +122,7 @@ public class AgentController {
             @RequestParam(value = "nextStepAgent", required = false) String nextStepAgent,
             @RequestParam(value = "stopStream", required = false) Boolean stopStream,
             @RequestParam(value = "skillsPrompt", required = false) String skillsPrompt,
+            @RequestParam(value = "deepChatBiApi", defaultValue = "false") boolean deepChatBiApi,
             @RequestParam(value = "sreBrain", defaultValue = "false") boolean sreBrain,
             @RequestParam(value = "graphRag", defaultValue = "true") boolean graphRag,
             @RequestParam(value = "neoBrain", defaultValue = "false") boolean neoBrain,
@@ -136,8 +149,79 @@ public class AgentController {
         }
         AgentStreamChunk effective = applySreLayers(req, sreBrain);
         log.info("/stream/v5 GET -> chunk: {}", JSON.toJSONString(effective));
+        if (deepChatBiApi) {
+            return streamViaDeepChatBiApi(effective);
+        }
         boolean augmentGraph = graphRag || neoBrain;
         return streamV5Entity(effective, augmentGraph, graphLimit);
+    }
+
+    private static String firstNonBlank(String a, String b) {
+        return StringUtils.hasText(a) ? a : b;
+    }
+
+    /**
+     * Passthrough proxy to DeepChatBI API (remote SSE). We send a DeepChatBI-shaped JSON body,
+     * then stream the upstream {@code text/event-stream} bytes back to the client unchanged.
+     */
+    private ResponseEntity<StreamingResponseBody> streamViaDeepChatBiApi(AgentStreamChunk req) {
+        if (req == null) {
+            return sseErrorResponse(400, AgentStreamChunk.createErrorEvent("DeepChatBIAPI", "empty request body"));
+        }
+
+        final Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("userId", firstNonBlank(req.getUserId(), "test-user"));
+        payload.put("sessionId", firstNonBlank(req.getSessionId(), "task-session-001"));
+        payload.put("lang", firstNonBlank(req.getLang(), "Chinese"));
+        payload.put("datasourceId", req.getDatasourceId() == null ? 1 : req.getDatasourceId());
+        payload.put("modelType", firstNonBlank(req.getModelType(), "QWEN"));
+        payload.put("agentName", firstNonBlank(req.getAgentName(), "TaskSystemV5StreamAgent"));
+        payload.put("content", firstNonBlank(req.getContent(), ""));
+
+        final String jsonBody = JSON.toJSONString(payload);
+
+        StreamingResponseBody body = outputStream -> {
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            HttpRequest httpReq = HttpRequest.newBuilder()
+                    .uri(DEEPCHATBI_STREAM_V5)
+                    .timeout(Duration.ofMinutes(30))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "text/event-stream")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                    .build();
+
+            try {
+                HttpResponse<InputStream> res = client.send(httpReq, HttpResponse.BodyHandlers.ofInputStream());
+                int code = res.statusCode();
+                if (code < 200 || code >= 300) {
+                    String err = "DeepChatBIAPI upstream error: HTTP " + code;
+                    log.warn(err);
+                    writeSseEvent(outputStream, AgentStreamChunk.createErrorEvent("DeepChatBIAPI", err));
+                    return;
+                }
+
+                try (InputStream is = res.body()) {
+                    byte[] buf = new byte[8 * 1024];
+                    int n;
+                    while ((n = is.read(buf)) >= 0) {
+                        outputStream.write(buf, 0, n);
+                        outputStream.flush();
+                    }
+                }
+            } catch (Exception e) {
+                String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+                log.warn("DeepChatBIAPI proxy failed", e);
+                writeSseEvent(outputStream, AgentStreamChunk.createErrorEvent("DeepChatBIAPI", msg));
+            }
+        };
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_EVENT_STREAM)
+                .cacheControl(CacheControl.noCache())
+                .body(body);
     }
 
     /** Playbook merge only; Neo4j NL→graph augment runs in {@link #streamV5Entity}. */

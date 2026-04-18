@@ -844,6 +844,7 @@
               <label><input type="checkbox" id="opt-graph-rag" checked /> graphRag（图谱增强）</label>
               <label><input type="checkbox" id="opt-neo-brain" /> neoBrain</label>
               <label><input type="checkbox" id="opt-sre-brain" /> sreBrain（遗留 playbook）</label>
+              <label><input type="checkbox" id="opt-deepchatbi-api" /> DeepChatBIAPI（远程）</label>
             </div>
           </div>
         </details>
@@ -1621,6 +1622,8 @@ async function streamAgentFromApi() {
   params.set('graphRag', document.getElementById('opt-graph-rag').checked ? 'true' : 'false');
   params.set('neoBrain', document.getElementById('opt-neo-brain').checked ? 'true' : 'false');
   params.set('sreBrain', document.getElementById('opt-sre-brain').checked ? 'true' : 'false');
+  const deepEl = document.getElementById('opt-deepchatbi-api');
+  if (deepEl && deepEl.checked) params.set('deepChatBiApi', 'true');
   const gl = document.getElementById('graph-limit');
   if (gl && gl.value !== '') {
     const n = parseInt(gl.value, 10);
