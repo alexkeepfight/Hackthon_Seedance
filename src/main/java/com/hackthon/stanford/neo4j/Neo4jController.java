@@ -24,15 +24,15 @@ import java.util.Set;
 public class Neo4jController {
 
     private final ObjectProvider<Neo4jProbeService> probeService;
-    private final ObjectProvider<Neo4jSreGraphBootstrap> sreBootstrap;
-    private final ObjectProvider<Neo4jSreRagService> sreRagService;
+    private final ObjectProvider<Neo4jAdsAttributionGraphBootstrap> adsBootstrap;
+    private final ObjectProvider<Neo4jAdsAttributionRagService> adsRagService;
 
     public Neo4jController(ObjectProvider<Neo4jProbeService> probeService,
-                          ObjectProvider<Neo4jSreGraphBootstrap> sreBootstrap,
-                          ObjectProvider<Neo4jSreRagService> sreRagService) {
+                          ObjectProvider<Neo4jAdsAttributionGraphBootstrap> adsBootstrap,
+                          ObjectProvider<Neo4jAdsAttributionRagService> adsRagService) {
         this.probeService = probeService;
-        this.sreBootstrap = sreBootstrap;
-        this.sreRagService = sreRagService;
+        this.adsBootstrap = adsBootstrap;
+        this.adsRagService = adsRagService;
     }
 
     /**
@@ -150,36 +150,68 @@ public class Neo4jController {
     }
 
     /**
-     * Idempotent: constraints + MERGE SRE demo incidents (INC-042, INC-051) for LLM matching.
-     * {@code GET /api/neo4j/bootstrap-sre}
+     * Full wipe of all nodes + rebuild ads-attribution schema and demo seed (DeepChatBI / Shopify style).
+     * {@code GET /api/neo4j/bootstrap-ads}
      */
+    @GetMapping("/bootstrap-ads")
+    public ResponseEntity<Map<String, Object>> bootstrapAds() {
+        return runAdsBootstrap(false);
+    }
+
+    /**
+     * @deprecated Alias for {@link #bootstrapAds()}; SRE demo graph has been replaced by ads attribution.
+     */
+    @Deprecated
     @GetMapping("/bootstrap-sre")
     public ResponseEntity<Map<String, Object>> bootstrapSre() {
-        Neo4jSreGraphBootstrap boot = sreBootstrap.getIfAvailable();
+        return runAdsBootstrap(true);
+    }
+
+    private ResponseEntity<Map<String, Object>> runAdsBootstrap(boolean deprecatedAlias) {
+        Neo4jAdsAttributionGraphBootstrap boot = adsBootstrap.getIfAvailable();
         if (boot == null) {
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("ok", false);
-            body.put("reason", "Neo4j Driver or Neo4jSreGraphBootstrap not available.");
+            body.put("reason", "Neo4j Driver or Neo4jAdsAttributionGraphBootstrap not available.");
             return ResponseEntity.status(503).body(body);
         }
         Map<String, Object> body = boot.seedAll();
+        if (deprecatedAlias) {
+            body.put("deprecatedEndpoint", "/api/neo4j/bootstrap-sre");
+            body.put("useInstead", "/api/neo4j/bootstrap-ads");
+        }
         boolean ok = Boolean.TRUE.equals(body.get("ok"));
         return ok ? ResponseEntity.ok(body) : ResponseEntity.status(502).body(body);
     }
 
     /**
-     * Build plain-text context from the SRE graph for injection into an LLM prompt (substring match).
-     * {@code GET /api/neo4j/sre-context-for-llm?query=...&limit=3}
+     * Plain-text context from the ads graph for LLM injection (substring / token match on {@code :Creative}).
+     * {@code GET /api/neo4j/ads-context-for-llm?query=...&limit=3}
      */
+    @GetMapping("/ads-context-for-llm")
+    public ResponseEntity<Map<String, Object>> adsContextForLlm(
+            @RequestParam("query") String query,
+            @RequestParam(value = "limit", required = false) Integer limit) {
+        return contextForLlm(query, limit, false);
+    }
+
+    /**
+     * @deprecated Alias for {@link #adsContextForLlm(String, Integer)}.
+     */
+    @Deprecated
     @GetMapping("/sre-context-for-llm")
     public ResponseEntity<Map<String, Object>> sreContextForLlm(
             @RequestParam("query") String query,
             @RequestParam(value = "limit", required = false) Integer limit) {
-        Neo4jSreRagService rag = sreRagService.getIfAvailable();
+        return contextForLlm(query, limit, true);
+    }
+
+    private ResponseEntity<Map<String, Object>> contextForLlm(String query, Integer limit, boolean deprecatedAlias) {
+        Neo4jAdsAttributionRagService rag = adsRagService.getIfAvailable();
         if (rag == null) {
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("ok", false);
-            body.put("reason", "Neo4jSreRagService not available.");
+            body.put("reason", "Neo4jAdsAttributionRagService not available.");
             return ResponseEntity.status(503).body(body);
         }
         if (query == null || query.isBlank()) {
@@ -189,6 +221,10 @@ public class Neo4jController {
             return ResponseEntity.badRequest().body(err);
         }
         Map<String, Object> body = rag.buildContextPayload(query.trim(), SreContextRequest.clampLimit(limit));
+        if (deprecatedAlias) {
+            body.put("deprecatedEndpoint", "/api/neo4j/sre-context-for-llm");
+            body.put("useInstead", "/api/neo4j/ads-context-for-llm");
+        }
         return ResponseEntity.ok(body);
     }
 }

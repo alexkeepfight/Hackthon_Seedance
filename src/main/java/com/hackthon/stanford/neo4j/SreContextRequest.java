@@ -3,7 +3,7 @@ package com.hackthon.stanford.neo4j;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * Shared limit clamp for {@code GET /api/neo4j/sre-context-for-llm?limit=}.
+ * Shared limit clamp for {@code GET /api/neo4j/ads-context-for-llm?limit=} (and deprecated {@code sre-context-for-llm}).
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record SreContextRequest(String query, Integer limit) {

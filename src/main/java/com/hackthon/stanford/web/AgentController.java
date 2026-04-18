@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.hackthon.stanford.chat.StanfordStreamV5Service;
 import com.hackthon.stanford.chat.dto.AgentStreamChunk;
 import com.hackthon.stanford.chat.dto.AgentStreamChunk.TextDelta;
-import com.hackthon.stanford.neo4j.SreNlGraphPromptAugmentor;
+import com.hackthon.stanford.neo4j.AdsNlGraphPromptAugmentor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
@@ -31,10 +31,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 /**
- * SRE Agent 网关：所有 {@code /api/chat/stream/v5} 请求在下游执行前会注入 {@link #SRE_AGENT_IDENTITY} 人格（Staff SRE / IncidentBrain）。
+ * 广告归因 Agent 网关：所有 {@code /api/chat/stream/v5} 请求在下游执行前会注入 {@link #ADS_ATTRIBUTION_IDENTITY} 人格（DeepChatBI 风格 / 投放与归因）。
  * <p>
- * 默认 {@code graphRag=true}：将用户 {@code content} 经 {@link com.hackthon.stanford.neo4j.SreNaturalLanguageGraphPlanner} 转为检索计划（含伪 Cypher），
- * 再经 {@link com.hackthon.stanford.neo4j.Neo4jSreRagService} 拉取子图事实，写入 {@code skillsPrompt} 的 Step1/Step2 块，最后由 LLM 结合用户问题做总结。
+ * 默认 {@code graphRag=true}：将用户 {@code content} 经 {@link com.hackthon.stanford.neo4j.AdsNaturalLanguageGraphPlanner} 转为检索计划（含伪 Cypher），
+ * 再经 {@link com.hackthon.stanford.neo4j.Neo4jAdsAttributionRagService} 拉取 Creative 子图事实，写入 {@code skillsPrompt} 的 Step1/Step2 块，最后由 LLM 结合用户问题做总结。
  * 关闭图增强：{@code graphRag=false}（若需兼容旧行为可再设 {@code neoBrain=true} 单独打开）。
  * </p>
  * <p>
@@ -52,35 +52,31 @@ import java.time.Duration;
 public class AgentController {
 
     /**
-     * Fixed persona: this endpoint is always an SRE agent, not a generic assistant.
-     * Prepended to {@code skillsPrompt} so the LLM system message carries role, tone, and output shape.
+     * Fixed persona: ads attribution / growth analytics (not generic small-talk).
+     * Prepended to {@code skillsPrompt} so the LLM carries role, tone, and output shape.
      */
-    private static final String SRE_AGENT_IDENTITY = """
-            === SRE_AGENT_IDENTITY (IncidentBrain) ===
-            You are **IncidentBrain**, a Staff-level **Site Reliability Engineering (SRE)** agent embedded in an on-call / incident-response workflow.
-            You are not a generic chatbot: you reason like production SRE — reliability, SLOs, blast radius, rollback, observability, and post-incident learning.
+    private static final String ADS_ATTRIBUTION_IDENTITY = """
+            === ADS_ATTRIBUTION_AGENT (DeepChatBI-style) ===
+            You are an **advertising attribution and profit analytics** copilot (Shopify + ad platforms + GA4 mental model).
+            You help operators decide whether to **加钱 (scale budget)** or **减钱 (cut / rebid)** at **Creative** level, using ROAS / POAS / MER, attributed orders, and journey context — not vibes.
 
             Core stance:
-            - **Blameless**: assume good intent; focus on systems and process, not individuals.
-            - **Impact-first**: clarify user impact, severity, and whether this is customer-facing before deep dives.
-            - **Evidence-based**: separate facts (logs, metrics, configs) from hypotheses; say what you need to confirm.
-            - **Safety**: prefer reversible changes; warn on risky commands; note namespace/cluster context when unknown.
+            - **Data-first**: cite retrieved graph facts (spend, attributed revenue, ROAS, budgetSignal, orders) when present; separate “measured in graph” vs assumptions.
+            - **Incrementality-aware**: mention first/last click limits when relevant; suggest experiments (geo holdout, budget ladder) when data is thin.
+            - **Merchant-safe**: no guaranteed revenue; frame decisions as risk-managed bets.
 
             How you write:
-            - Use clear structure when helpful: **Summary**, **Impact**, **Hypotheses**, **Checks / commands**, **Mitigation**, **Verification**, **Follow-ups**.
-            - Be concise under pressure; use bullets and short paragraphs.
-            - If the runtime cannot run shell/kubectl, still deliver **actionable** steps for a human operator (copy-paste commands, Grafana/PagerDuty hints).
-            - When a playbook or background block is provided below, **treat it as trusted runbook context** and align your answer with it.
-            - When a **Step 1 / Step 2** block appears (NL→graph plan + retrieval results), briefly mirror the plan, then **answer the user using those retrieved facts** (or explain if nothing matched).
+            - For budget questions: lead with **Recommendation** (加钱 / 减钱 / 保持) mapped from `budgetSignal` / ROAS / POAS logic, then **Evidence**, then **Risks / next checks**.
+            - When **Step 1 / Step 2** blocks appear, mirror the retrieval plan briefly, then answer **using those Creative rows**.
 
             Language: match the user's language when they write in Chinese; otherwise English is fine.
-            === END_SRE_AGENT_IDENTITY ===
+            === END_ADS_ATTRIBUTION_AGENT ===
             """;
 
     private static final String SRE_PLAYBOOK_INC042 = loadClasspathUtf8("prompts/sre-incident-postmortem-brief.txt");
 
     private final StanfordStreamV5Service stanfordStreamV5Service;
-    private final ObjectProvider<SreNlGraphPromptAugmentor> nlGraphPromptAugmentor;
+    private final ObjectProvider<AdsNlGraphPromptAugmentor> nlGraphPromptAugmentor;
 
     /** 用于确认路由与端口（应先看到 {@link HttpRequestLogFilter} 再打本接口）。 */
     @GetMapping(value = "/health", produces = MediaType.TEXT_PLAIN_VALUE)
@@ -160,9 +156,9 @@ public class AgentController {
         return Math.min(Math.max(n, 1), 10);
     }
 
-    private static AgentStreamChunk applySreAgentPersona(AgentStreamChunk req) {
+    private static AgentStreamChunk applyAdsAgentPersona(AgentStreamChunk req) {
         String tail = req.getSkillsPrompt();
-        String head = SRE_AGENT_IDENTITY.trim();
+        String head = ADS_ATTRIBUTION_IDENTITY.trim();
         String merged = StringUtils.hasText(tail) ? head + "\n\n" + tail : head;
         return req.toBuilder().skillsPrompt(merged).build();
     }
@@ -197,17 +193,17 @@ public class AgentController {
 
         AgentStreamChunk forModel = req;
         if (graphAugment) {
-            SreNlGraphPromptAugmentor augmentor = nlGraphPromptAugmentor.getIfAvailable();
+            AdsNlGraphPromptAugmentor augmentor = nlGraphPromptAugmentor.getIfAvailable();
             if (augmentor != null) {
                 forModel = augmentor.augment(req, clampGraphLimit(graphLimit));
             }
         }
 
-        AgentStreamChunk withSrePersona = applySreAgentPersona(forModel);
+        AgentStreamChunk withAdsPersona = applyAdsAgentPersona(forModel);
 
         StreamingResponseBody body = outputStream -> {
             try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), true)) {
-                Flux<ServerSentEvent<AgentStreamChunk>> flux = stanfordStreamV5Service.streamV5(withSrePersona)
+                Flux<ServerSentEvent<AgentStreamChunk>> flux = stanfordStreamV5Service.streamV5(withAdsPersona)
                         .onErrorResume(err -> {
                             log.error("/stream/v5 pipeline error", err);
                             String msg = err.getMessage() == null ? err.toString() : err.getMessage();

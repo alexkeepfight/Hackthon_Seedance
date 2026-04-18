@@ -2,7 +2,7 @@ package com.hackthon.stanford.neo4j;
 
 import com.hackthon.stanford.chat.dto.AgentStreamChunk;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -11,7 +11,7 @@ import org.springframework.util.StringUtils;
  */
 @Service
 @RequiredArgsConstructor
-@ConditionalOnBean(Neo4jAdsAttributionRagService.class)
+@Conditional(Neo4jEnabledCondition.class)
 public class AdsNlGraphPromptAugmentor {
 
     private static final String META_HINT = """

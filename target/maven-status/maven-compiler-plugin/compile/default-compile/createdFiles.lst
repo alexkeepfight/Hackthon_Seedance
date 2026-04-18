@@ -1,5 +1,7 @@
-com/hackthon/stanford/neo4j/SreNaturalLanguageGraphPlanner.class
+com/hackthon/stanford/neo4j/Neo4jAdsAttributionGraphBootstrap.class
 com/hackthon/stanford/neo4j/SreContextRequest.class
+com/hackthon/stanford/neo4j/AdsNaturalLanguageGraphPlanner.class
+com/hackthon/stanford/neo4j/Neo4jAdsGraphSeedRunner.class
 com/hackthon/stanford/neo4j/Neo4jHardcodedCredentials.class
 com/hackthon/stanford/agent/ClaudeAgentRunRequest.class
 com/hackthon/stanford/chat/enums/AgentAttributes.class
@@ -7,7 +9,6 @@ com/hackthon/stanford/agent/TaskToolRuntime$TaskManager.class
 com/hackthon/stanford/neo4j/QueryCypherRequest.class
 com/hackthon/stanford/neo4j/CypherReadOnlyGuard.class
 com/hackthon/stanford/web/AgentController.class
-com/hackthon/stanford/neo4j/SreNlGraphPromptAugmentor.class
 com/hackthon/stanford/agent/TaskToolRuntime.class
 com/hackthon/stanford/agent/TaskToolRuntime$TaskStatus.class
 com/hackthon/stanford/chat/dto/AgentStreamChunk$TextDelta.class
@@ -21,9 +22,7 @@ com/hackthon/stanford/web/HttpRequestLogFilter.class
 com/hackthon/stanford/agent/ClaudeToolLoopService.class
 com/hackthon/stanford/chat/dto/AgentStreamChunk.class
 com/hackthon/stanford/chat/dto/AgentStreamChunk$TextDelta$TextDeltaBuilder.class
-com/hackthon/stanford/neo4j/Neo4jSreGraphBootstrap.class
-com/hackthon/stanford/neo4j/Neo4jSreRagService.class
-com/hackthon/stanford/neo4j/Neo4jSreGraphSeedRunner.class
+com/hackthon/stanford/neo4j/Neo4jAdsAttributionRagService.class
 com/hackthon/stanford/llm/AnthropicMessagesClient.class
 com/hackthon/stanford/web/HelloRootController.class
 com/hackthon/stanford/config/AnthropicProperties.class
@@ -32,5 +31,6 @@ com/hackthon/stanford/agent/TaskSystemClaudeAgent.class
 com/hackthon/stanford/chat/dto/AgentStreamChunk$DeltaStatus.class
 com/hackthon/stanford/chat/enums/AgentStatus.class
 com/hackthon/stanford/neo4j/GraphRetrievalPlan.class
+com/hackthon/stanford/neo4j/AdsNlGraphPromptAugmentor.class
 com/hackthon/stanford/chat/dto/AgentStreamChunk$AgentStreamChunkBuilder.class
 com/hackthon/stanford/config/StanfordAppConfig.class

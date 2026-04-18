@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IncidentBrain</title>
+<title>DeepChatBI · Ads Attribution</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -786,7 +786,7 @@
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="brand">
-    <span class="bolt">&#9889;</span> IncidentBrain
+    <span class="bolt">&#9889;</span> DeepChatBI Attribution
   </div>
   <div class="status">
     <span id="timer" style="color: #3a5070;">00:00</span>
@@ -800,7 +800,7 @@
 
   <!-- LEFT: ALERTS -->
   <div class="left-panel">
-    <h3>Alert Feed</h3>
+    <h3>Creative budget signals</h3>
     <div id="alert-feed"></div>
   </div>
 
@@ -811,10 +811,10 @@
         <div class="match-title" id="match-title"></div>
         <div class="match-detail" id="match-detail"></div>
       </div>
-      <button class="fire-btn" id="fire-btn" onclick="simulateAlert()">SIMULATE ALERT</button>
+      <button class="fire-btn" id="fire-btn" onclick="simulateAlert()">SIMULATE BUDGET REVIEW</button>
     </div>
     <div class="fix-proposal" id="fix-proposal">
-      <div style="font-weight: 600; font-size: 13px;">Recommended Fix</div>
+      <div style="font-weight: 600; font-size: 13px;">Recommended budget action</div>
       <div class="fix-code" id="fix-code"></div>
       <div class="fix-meta" id="fix-meta"></div>
       <div class="fix-buttons">
@@ -826,11 +826,11 @@
   <!-- RIGHT: CHAT -->
   <aside class="chat-sidebar">
     <div class="chat-sidebar__head">
-      <div class="chat-sidebar__title">SRE Copilot</div>
+      <div class="chat-sidebar__title">Ads Attribution Copilot</div>
       <div class="chat-stats-row">
         <div class="chat-stat-mini">
-          <div class="lbl">Incidents</div>
-          <div class="val cyan" id="stat-incidents" style="color:#00d4ff">847</div>
+          <div class="lbl">Creatives</div>
+          <div class="val cyan" id="stat-creatives" style="color:#00d4ff">4</div>
         </div>
         <div class="chat-stat-mini">
           <div class="lbl">Avg MTTR</div>
@@ -863,13 +863,13 @@
           <div class="chat-advanced__opts">
             <label><input type="checkbox" id="opt-graph-rag" checked /> graphRag</label>
             <label><input type="checkbox" id="opt-neo-brain" /> neoBrain</label>
-            <label><input type="checkbox" id="opt-sre-brain" checked /> sreBrain</label>
+            <label><input type="checkbox" id="opt-sre-brain" /> sreBrain (legacy playbook)</label>
           </div>
         </div>
       </details>
       <div class="chat-input-row">
         <textarea id="agent-query" rows="2"
-          placeholder="Message IncidentBrain… (Enter to send, Shift+Enter for newline)">Patch ConfigMap DB_POOL_SIZE to 20 and rollout restart api-server</textarea>
+          placeholder="Ask which Creative should 加钱 or 减钱… (Enter to send)">Google 搜索品牌创意 ROAS 低于 1，该不该减钱？</textarea>
         <button type="button" class="btn-send" id="btn-send-chat">Send</button>
       </div>
       <div class="chat-voice-row">
@@ -891,7 +891,7 @@
   <div class="mttr-before">45 minutes</div>
   <div class="mttr-arrow">&#x2193;</div>
   <div class="mttr-after" id="mttr-time">28 seconds</div>
-  <div class="mttr-label">Same incident. Same resolution. 96x faster.</div>
+  <div class="mttr-label">Creative-level MER / ROAS → 加钱 or 减钱, grounded in the graph.</div>
 </div>
 
 <!-- SCRIPTS -->
@@ -914,15 +914,19 @@ let Graph;
 // ============================================================
 // COLOR & SIZE CONFIG
 // ============================================================
+const GRAPH_LABELS = ['Creative','Campaign','AdPlatform','ShopOrder','CustomerSession','TouchChannel','ReportPeriod'];
 const NODE_COLORS = {
-  'Incident':  '#ef4444',
-  'Service':   '#00aaff',
-  'Symptom':   '#ff8c00',
-  'RootCause': '#a855f7',
-  'Fix':       '#22c55e'
+  'Creative':        '#f97316',
+  'Campaign':        '#38bdf8',
+  'AdPlatform':      '#a855f7',
+  'ShopOrder':       '#22c55e',
+  'CustomerSession': '#64748b',
+  'TouchChannel':    '#eab308',
+  'ReportPeriod':    '#94a3b8'
 };
 const NODE_SIZES = {
-  'Incident': 12, 'Service': 9, 'Symptom': 5, 'RootCause': 5, 'Fix': 5
+  'Creative': 14, 'Campaign': 10, 'AdPlatform': 11, 'ShopOrder': 9,
+  'CustomerSession': 6, 'TouchChannel': 7, 'ReportPeriod': 10
 };
 const HIGHLIGHT_COLOR = '#ffd700';
 
@@ -936,9 +940,9 @@ async function fetchGraph() {
   try {
     const result = await session.run(`
       MATCH (n)
-      WHERE n:Incident OR n:Service OR n:Symptom OR n:RootCause OR n:Fix
+      WHERE n:Creative OR n:Campaign OR n:AdPlatform OR n:ShopOrder OR n:CustomerSession OR n:TouchChannel OR n:ReportPeriod
       OPTIONAL MATCH (n)-[r]->(m)
-      WHERE m:Incident OR m:Service OR m:Symptom OR m:RootCause OR m:Fix
+      WHERE m:Creative OR m:Campaign OR m:AdPlatform OR m:ShopOrder OR m:CustomerSession OR m:TouchChannel OR m:ReportPeriod
       RETURN n, r, m
     `);
 
@@ -952,7 +956,7 @@ async function fetchGraph() {
 
       if (n && !nodesMap.has(n.identity.toString())) {
         const labels = n.labels || [];
-        const type = labels.find(l => ['Incident','Service','Symptom','RootCause','Fix'].includes(l)) || 'Unknown';
+        const type = labels.find(l => GRAPH_LABELS.includes(l)) || 'Unknown';
         const props = {};
         for (const [k, v] of Object.entries(n.properties)) {
           props[k] = typeof v === 'object' && v.low !== undefined ? v.low : v;
@@ -967,7 +971,7 @@ async function fetchGraph() {
 
       if (m && !nodesMap.has(m.identity.toString())) {
         const labels = m.labels || [];
-        const type = labels.find(l => ['Incident','Service','Symptom','RootCause','Fix'].includes(l)) || 'Unknown';
+        const type = labels.find(l => GRAPH_LABELS.includes(l)) || 'Unknown';
         const props = {};
         for (const [k, v] of Object.entries(m.properties)) {
           props[k] = typeof v === 'object' && v.low !== undefined ? v.low : v;
@@ -1011,60 +1015,21 @@ async function fetchGraph() {
 // ============================================================
 function createMockData() {
   const nodes = [
-    { id: 'inc042', label: 'INC-042', type: 'Incident', title: 'API Latency Spike', severity: 'P1' },
-    { id: 'inc031', label: 'INC-031', type: 'Incident', title: 'OOMKilled Pods', severity: 'P1' },
-    { id: 'inc014', label: 'INC-014', type: 'Incident', title: 'Empty Endpoints', severity: 'P2' },
-    { id: 'inc017', label: 'INC-017', type: 'Incident', title: 'Auth Failure', severity: 'P0' },
-    { id: 'inc009', label: 'INC-009', type: 'Incident', title: 'Alert Storm', severity: 'P2' },
-    { id: 'api', label: 'api-server', type: 'Service' },
-    { id: 'pg', label: 'postgres', type: 'Service' },
-    { id: 'redis', label: 'redis', type: 'Service' },
-    { id: 'auth', label: 'auth-service', type: 'Service' },
-    { id: 'pay', label: 'payment-service', type: 'Service' },
-    { id: 'check', label: 'checkout-service', type: 'Service' },
-    { id: 'prom', label: 'prometheus', type: 'Service' },
-    { id: 'sym042', label: '503 errors, connection pool', type: 'Symptom' },
-    { id: 'sym031', label: 'Pods OOMKilled', type: 'Symptom' },
-    { id: 'sym014', label: 'Service unreachable', type: 'Symptom' },
-    { id: 'sym017', label: '100% 500 errors', type: 'Symptom' },
-    { id: 'sym009', label: '47 false alerts', type: 'Symptom' },
-    { id: 'rc042', label: 'DB_POOL_SIZE=1', type: 'RootCause' },
-    { id: 'rc031', label: 'Unbounded cache, no TTL', type: 'RootCause' },
-    { id: 'rc014', label: 'Label selector typo', type: 'RootCause' },
-    { id: 'rc017', label: 'Vault rotated secret', type: 'RootCause' },
-    { id: 'rc009', label: 'Prometheus restart', type: 'RootCause' },
-    { id: 'fix042', label: 'Set DB_POOL_SIZE=20', type: 'Fix' },
-    { id: 'fix031', label: 'Add TTL, set memory limits', type: 'Fix' },
-    { id: 'fix014', label: 'Fix label selector', type: 'Fix' },
-    { id: 'fix017', label: 'Restart pods after rotation', type: 'Fix' },
-    { id: 'fix009', label: 'Add absent() guard', type: 'Fix' },
+    { id: 'pg', label: 'Google Ads', type: 'AdPlatform', name: 'Google Ads' },
+    { id: 'pm', label: 'Meta Ads', type: 'AdPlatform', name: 'Meta Ads' },
+    { id: 'cg', label: 'Google · meal pkgs', type: 'Campaign', name: 'Google · meal packages' },
+    { id: 'cm', label: 'Meta prospecting', type: 'Campaign', name: 'Meta · prospecting' },
+    { id: 'cr1', label: 'Google DCO two-week', type: 'Creative', name: 'Google DCO · Two-week bundle', roas: 3.66, spendUsd: 295, budgetSignal: 'SCALE_UP', budgetSignalZh: '加钱' },
+    { id: 'cr2', label: 'Google brand (weak)', type: 'Creative', name: 'Google Search · brand defense', roas: 0.92, spendUsd: 519, budgetSignal: 'SCALE_DOWN', budgetSignalZh: '减钱' },
+    { id: 'cr3', label: 'Meta carousel', type: 'Creative', name: 'Meta carousel · one-week', roas: 3.44, spendUsd: 265, budgetSignal: 'SCALE_UP', budgetSignalZh: '加钱' },
+    { id: 'rp', label: 'Apr 11–17 2026', type: 'ReportPeriod', name: 'Apr 11–17 2026' },
   ];
   const links = [
-    { source: 'inc042', target: 'api', type: 'AFFECTED', label: 'AFFECTED' },
-    { source: 'inc042', target: 'sym042', type: 'EXHIBITED', label: 'EXHIBITED' },
-    { source: 'inc042', target: 'rc042', type: 'CAUSED_BY', label: 'CAUSED BY' },
-    { source: 'inc042', target: 'fix042', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
-    { source: 'inc031', target: 'redis', type: 'AFFECTED', label: 'AFFECTED' },
-    { source: 'inc031', target: 'sym031', type: 'EXHIBITED', label: 'EXHIBITED' },
-    { source: 'inc031', target: 'rc031', type: 'CAUSED_BY', label: 'CAUSED BY' },
-    { source: 'inc031', target: 'fix031', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
-    { source: 'inc014', target: 'check', type: 'AFFECTED', label: 'AFFECTED' },
-    { source: 'inc014', target: 'sym014', type: 'EXHIBITED', label: 'EXHIBITED' },
-    { source: 'inc014', target: 'rc014', type: 'CAUSED_BY', label: 'CAUSED BY' },
-    { source: 'inc014', target: 'fix014', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
-    { source: 'inc017', target: 'auth', type: 'AFFECTED', label: 'AFFECTED' },
-    { source: 'inc017', target: 'sym017', type: 'EXHIBITED', label: 'EXHIBITED' },
-    { source: 'inc017', target: 'rc017', type: 'CAUSED_BY', label: 'CAUSED BY' },
-    { source: 'inc017', target: 'fix017', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
-    { source: 'inc009', target: 'prom', type: 'AFFECTED', label: 'AFFECTED' },
-    { source: 'inc009', target: 'sym009', type: 'EXHIBITED', label: 'EXHIBITED' },
-    { source: 'inc009', target: 'rc009', type: 'CAUSED_BY', label: 'CAUSED BY' },
-    { source: 'inc009', target: 'fix009', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
-    { source: 'api', target: 'pg', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
-    { source: 'api', target: 'redis', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
-    { source: 'check', target: 'api', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
-    { source: 'pay', target: 'pg', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
-    { source: 'auth', target: 'redis', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
+    { source: 'cg', target: 'pg', type: 'ON_PLATFORM', label: 'ON PLATFORM' },
+    { source: 'cm', target: 'pm', type: 'ON_PLATFORM', label: 'ON PLATFORM' },
+    { source: 'cr1', target: 'cg', type: 'IN_CAMPAIGN', label: 'IN CAMPAIGN' },
+    { source: 'cr2', target: 'cg', type: 'IN_CAMPAIGN', label: 'IN CAMPAIGN' },
+    { source: 'cr3', target: 'cm', type: 'IN_CAMPAIGN', label: 'IN CAMPAIGN' },
   ];
   return { nodes, links };
 }
@@ -1149,30 +1114,38 @@ function showNodeInfo(node) {
 }
 
 // ============================================================
-// ALERT FEED (from graph Incident nodes)
+// CREATIVE BUDGET FEED (from graph Creative nodes)
 // ============================================================
-function getLinkedServiceForIncident(incidentNode) {
-  const iid = String(incidentNode.id);
+function getLinkedPlatformForCreative(creativeNode) {
+  const cid = String(creativeNode.id);
   for (const l of graphData.links) {
     const src = typeof l.source === 'object' ? String(l.source.id) : String(l.source);
     const tgt = typeof l.target === 'object' ? String(l.target.id) : String(l.target);
-    const otherId = src === iid ? tgt : (tgt === iid ? src : null);
+    const otherId = src === cid ? tgt : (tgt === cid ? src : null);
     if (otherId == null) continue;
-    const lt = String(l.type || l.label || '');
-    if (!lt.toUpperCase().includes('AFFECT')) continue;
-    const n = graphData.nodes.find(x => String(x.id) === otherId);
-    if (n && n.type === 'Service') return n.label || n.name || 'service';
+    const lt = String(l.type || l.label || '').toUpperCase();
+    if (!lt.includes('IN_CAMPAIGN')) continue;
+    const camp = graphData.nodes.find(x => String(x.id) === otherId);
+    if (!camp || camp.type !== 'Campaign') continue;
+    const campId = String(camp.id);
+    for (const l2 of graphData.links) {
+      const s2 = typeof l2.source === 'object' ? String(l2.source.id) : String(l2.source);
+      const t2 = typeof l2.target === 'object' ? String(l2.target.id) : String(l2.target);
+      const other2 = s2 === campId ? t2 : (t2 === campId ? s2 : null);
+      if (other2 == null) continue;
+      const t2type = String(l2.type || '').toUpperCase();
+      if (!t2type.includes('ON_PLATFORM')) continue;
+      const plat = graphData.nodes.find(x => String(x.id) === other2);
+      if (plat && plat.type === 'AdPlatform') return plat.label || plat.name || 'platform';
+    }
   }
   return null;
 }
 
-function incidentFeedTimeHint(node) {
-  const keys = ['time', 'date', 'detected_at', 'created', 'occurred_at', 'opened_at', 'updated'];
-  for (const k of keys) {
-    const v = node[k];
-    if (v != null && String(v).trim() !== '') return String(v);
-  }
-  return 'in graph';
+function creativeFeedSpendRoasLine(node) {
+  const roas = node.roas != null ? String(node.roas) : '—';
+  const spend = node.spendUsd != null ? String(node.spendUsd) : '—';
+  return `ROAS ${roas} · spend $${spend}`;
 }
 
 function focusGraphNode(node) {
@@ -1193,43 +1166,42 @@ function renderAlertFeedFromGraph() {
   const feed = document.getElementById('alert-feed');
   if (!feed) return;
 
-  const incidents = graphData.nodes
-    .filter(n => n.type === 'Incident')
-    .sort((a, b) => String(a.label || a.id).localeCompare(String(b.label || b.id)));
+  const creatives = graphData.nodes
+    .filter(n => n.type === 'Creative')
+    .sort((a, b) => String(a.label || a.name || a.id).localeCompare(String(b.label || b.name || b.id)));
 
-  if (incidents.length === 0) {
+  if (creatives.length === 0) {
     feed.innerHTML =
       '<div class="alert-item" style="cursor:default;border-style:dashed">' +
-      '<div style="font-size:11px;color:#3a5070">No <strong>Incident</strong> nodes in the graph.</div></div>';
+      '<div style="font-size:11px;color:#3a5070">No <strong>Creative</strong> nodes in the graph.</div></div>';
     return;
   }
 
-  feed.innerHTML = incidents
-    .map((inc) => {
-      const id = escapeHtml(String(inc.label || inc.id || inc.name || 'Incident'));
-      const rawSev = String(inc.severity || 'P2').trim();
-      const sevLower = rawSev.toLowerCase().replace(/\s/g, '');
-      const sevClass = ['p0', 'p1', 'p2', 'p3'].includes(sevLower) ? sevLower : 'p2';
-      const sevDisplay = escapeHtml(rawSev.toUpperCase());
-      const svc = getLinkedServiceForIncident(inc);
-      const svcHtml = escapeHtml(svc || '—');
-      const when = escapeHtml(incidentFeedTimeHint(inc));
-      const nid = escapeHtml(String(inc.id));
+  feed.innerHTML = creatives
+    .map((cr) => {
+      const title = escapeHtml(String(cr.label || cr.name || cr.id || 'Creative'));
+      const sigZh = escapeHtml(String(cr.budgetSignalZh || cr.budgetSignal || '—'));
+      const sig = String(cr.budgetSignal || '').toUpperCase();
+      const sevClass = sig.includes('SCALE_UP') ? 'p1' : (sig.includes('SCALE_DOWN') ? 'p0' : 'p2');
+      const plat = getLinkedPlatformForCreative(cr);
+      const platHtml = escapeHtml(plat || '—');
+      const meta = escapeHtml(creativeFeedSpendRoasLine(cr));
+      const nid = escapeHtml(String(cr.id));
       return (
-        `<div class="alert-item" data-incident-id="${nid}" role="button" tabindex="0">` +
+        `<div class="alert-item" data-creative-id="${nid}" role="button" tabindex="0">` +
         `<div style="display:flex;justify-content:space-between;align-items:center">` +
-        `<span class="alert-id">${id}</span>` +
-        `<span class="severity ${sevClass}">${sevDisplay}</span>` +
+        `<span class="alert-id">${title}</span>` +
+        `<span class="severity ${sevClass}">${sigZh}</span>` +
         `</div>` +
-        `<div class="alert-svc">${svcHtml} &middot; ${when}</div>` +
+        `<div class="alert-svc">${platHtml} &middot; ${meta}</div>` +
         `</div>`
       );
     })
     .join('');
 
-  feed.querySelectorAll('.alert-item[data-incident-id]').forEach((el) => {
+  feed.querySelectorAll('.alert-item[data-creative-id]').forEach((el) => {
     const open = () => {
-      const nid = el.getAttribute('data-incident-id');
+      const nid = el.getAttribute('data-creative-id');
       const node = graphData.nodes.find((n) => String(n.id) === nid);
       if (!node) return;
       focusGraphNode(node);
@@ -1731,7 +1703,7 @@ function addAgentWelcome() {
   const el = document.createElement('div');
   el.className = 'stream-welcome agent-line';
   el.innerHTML =
-    '<strong>IncidentBrain</strong> — describe an incident or ask for runbooks and commands.<span class="hint">Try the graph in the center, or <strong>SIMULATE ALERT</strong> for a guided demo.</span>';
+    '<strong>DeepChatBI Attribution</strong> — ask which <strong>Creative</strong> should 加钱 or 减钱 using ROAS / MER / journey context.<span class="hint">Load the graph, then try <strong>SIMULATE BUDGET REVIEW</strong>.</span>';
   appendChatTurn('system', el);
 }
 
@@ -1965,113 +1937,90 @@ async function simulateAlert() {
   btn.classList.add('hidden');
   getChatMessages().innerHTML = '';
 
-  // Find nodes by label or by type
-  const apiNode = graphData.nodes.find(n => n.label === 'api-server' || n.name === 'api-server');
-  const incNode = graphData.nodes.find(n => n.label === 'INC-042' || n.id === 'inc042' || (n.title && n.title.includes('Latency')));
-  const rcNode = graphData.nodes.find(n => n.type === 'RootCause' && (n.label.includes('POOL') || n.id === 'rc042'));
-  const fixNode = graphData.nodes.find(n => n.type === 'Fix' && (n.label.includes('POOL') || n.id === 'fix042'));
-  const symNode = graphData.nodes.find(n => n.type === 'Symptom' && (n.label.includes('503') || n.label.includes('connection') || n.id === 'sym042'));
+  const weakCr = graphData.nodes.find(n =>
+    n.type === 'Creative' && (String(n.budgetSignal || '').includes('SCALE_DOWN') || String(n.name || '').toLowerCase().includes('brand')));
+  const strongCr = graphData.nodes.find(n =>
+    n.type === 'Creative' && String(n.budgetSignal || '').includes('SCALE_UP')
+      && (weakCr == null || String(n.id) !== String(weakCr.id)));
+  const campNode = graphData.nodes.find(n => n.type === 'Campaign');
+  const platNode = graphData.nodes.find(n => n.type === 'AdPlatform');
 
-  // Add live alert to feed
   const feed = document.getElementById('alert-feed');
   const liveAlert = document.createElement('div');
   liveAlert.className = 'alert-item live';
   liveAlert.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <span class="alert-id">INC-087</span>
-      <span class="severity p1" style="animation: blink-fast 0.5s infinite">P1 LIVE</span>
+      <span class="alert-id">MER drift · brand line</span>
+      <span class="severity p0" style="animation: blink-fast 0.5s infinite">REVIEW</span>
     </div>
-    <div class="alert-svc">api-server &middot; just now</div>
+    <div class="alert-svc">Google Ads &middot; blended ROAS vs line-item POAS</div>
   `;
   feed.insertBefore(liveAlert, feed.firstChild);
 
   startTimer();
-  document.getElementById('stat-resolution').textContent = 'Investigating...';
+  document.getElementById('stat-resolution').textContent = 'Analyzing…';
   document.getElementById('stat-resolution').style.color = '#ff8c00';
 
-  // Phase 1: Alert received
-  addAgentLine('<span style="color:#ff3b3b">ALERT:</span> api-server p99 latency > 5s (P1)');
+  addAgentLine('<span style="color:#ff8c00">SIGNAL:</span> Brand search creative shows ROAS &lt; 1 on attributed Shopify orders.');
 
-  await delay(1000);
-  addAgentLine('<span class="prefix">></span> IncidentBrain investigating...');
+  await delay(900);
+  addAgentLine('<span class="prefix">></span> Pulling last-click + journey rows from Neo4j…');
 
   await delay(800);
-  addAgentLine('<span class="prefix">|--</span> Checking cluster... api-server pod: CrashLoopBackOff');
-
-  // Highlight api-server
-  if (apiNode) {
-    highlightNodes.add(apiNode.id);
-    Graph.nodeColor(Graph.nodeColor()); // refresh
+  if (platNode) {
+    highlightNodes.add(platNode.id);
+    Graph.nodeColor(Graph.nodeColor());
   }
 
-  await delay(1000);
-  addAgentLine('<span class="prefix">|--</span> App logs: "Cannot acquire connection from pool"');
+  await delay(900);
+  addAgentLine('<span class="prefix">|--</span> Comparing spend vs attributed revenue on linked <strong>ShopOrder</strong> nodes…');
 
-  if (symNode) highlightNodes.add(symNode.id);
+  if (weakCr) highlightNodes.add(weakCr.id);
+  if (campNode) highlightNodes.add(campNode.id);
+  Graph.nodeColor(Graph.nodeColor());
 
-  await delay(1000);
-  addAgentLine('<span class="prefix">|--</span> Querying knowledge graph for similar incidents...');
+  await delay(1200);
+  addAgentLine('<span class="prefix">|--</span> Querying knowledge graph for <strong>Creative</strong> budgetSignal (加钱 / 减钱)…');
 
-  await delay(1500);
+  await delay(1100);
 
-  // Phase 2: Match found!
-  if (incNode) {
-    highlightNodes.add(incNode.id);
-    // Highlight the link between api and incident
+  if (weakCr) {
     graphData.links.forEach(l => {
       const src = typeof l.source === 'object' ? l.source.id : l.source;
       const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-      if ((src === apiNode?.id && tgt === incNode?.id) || (src === incNode?.id && tgt === apiNode?.id)) {
-        highlightLinks.add(l);
-      }
+      if (src === weakCr.id || tgt === weakCr.id) highlightLinks.add(l);
     });
   }
   Graph.nodeColor(Graph.nodeColor());
   Graph.linkColor(Graph.linkColor());
 
   addAgentLine('', 'match');
-  addAgentLine('<span style="color:#ffd700;font-size:14px">&#10024; MATCH FOUND: INC-042 (94% similarity, 3 weeks ago)</span>', 'match');
-  addAgentLine('<span class="prefix">|  </span> Symptoms: Same -- connection pool exhaustion on api-server');
-  addAgentLine('<span class="prefix">|  </span> Root cause: DB_POOL_SIZE misconfiguration');
-  addAgentLine('<span class="prefix">|  </span> Fix: Set DB_POOL_SIZE=20, restart deployment');
+  addAgentLine('<span style="color:#ffd700;font-size:14px">&#10024; GRAPH MATCH: underperforming Creative (ROAS &lt; 1)</span>', 'match');
+  addAgentLine('<span class="prefix">|  </span> Node: ' + (weakCr ? escapeHtml(String(weakCr.name || weakCr.label)) : '(add graph)') + ' → <strong>减钱</strong> / tighten bids');
+  if (strongCr) {
+    addAgentLine('<span class="prefix">|  </span> Contrast: ' + escapeHtml(String(strongCr.name || strongCr.label)) + ' → <strong>加钱</strong> candidate (ROAS &gt; 3)');
+  }
 
-  // Show match banner
-  document.getElementById('match-title').textContent = 'MATCH FOUND: INC-042 (94% similarity)';
-  document.getElementById('match-detail').textContent = 'Root cause: DB_POOL_SIZE=1 | Fix: Set to 20, restart';
+  document.getElementById('match-title').textContent = 'MATCH: weak Creative → 减钱';
+  document.getElementById('match-detail').textContent = 'Evidence: spend > attributed revenue · align with Ad Decision Center POAS';
   document.getElementById('match-banner').classList.add('show');
 
-  document.getElementById('stat-matches').textContent = '313';
+  document.getElementById('stat-matches').textContent = String(
+    1 + graphData.nodes.filter(n => n.type === 'Creative').length
+  );
 
-  await delay(1500);
+  await delay(1100);
+  addAgentLine('<span class="prefix">|--</span> Recommendation preview: reduce budget 15–25% or move spend to DCO / prospecting winners.');
 
-  // Phase 3: Verify
-  addAgentLine('<span class="prefix">|--</span> Verifying... current DB_POOL_SIZE = <span style="color:#00e676">1</span> CONFIRMED');
-
-  if (rcNode) highlightNodes.add(rcNode.id);
-  if (fixNode) highlightNodes.add(fixNode.id);
-  // Highlight links to root cause and fix
-  graphData.links.forEach(l => {
-    const src = typeof l.source === 'object' ? l.source.id : l.source;
-    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-    if (tgt === rcNode?.id || tgt === fixNode?.id || src === rcNode?.id || src === fixNode?.id) {
-      highlightLinks.add(l);
-    }
-  });
-  Graph.nodeColor(Graph.nodeColor());
-  Graph.linkColor(Graph.linkColor());
-
-  await delay(1000);
-
+  await delay(800);
   addAgentLine('<span class="prefix">|</span>');
-  addAgentLine('<span class="prefix">\\--</span> <span style="color:#00e676">RECOMMENDED FIX:</span> Set DB_POOL_SIZE=20');
-  addAgentLine('    <span class="prefix">Confidence:</span> 94% | <span class="prefix">Source:</span> INC-042');
+  addAgentLine('<span class="prefix">\\--</span> <span style="color:#00e676">NEXT:</span> approve playbook step (demo only)');
 
-  // Show fix proposal
-  document.getElementById('fix-code').textContent = 'kubectl patch configmap api-config -n production -p \'{"data":{"DB_POOL_SIZE":"20"}}\' && kubectl rollout restart deployment/api-server -n production';
-  document.getElementById('fix-meta').textContent = 'Based on INC-042 | Confidence: 94% | ~1 min recovery';
+  document.getElementById('fix-code').textContent = 'Action: lower tCPA / max CPC on brand creative; shift 20% budget to cr-google-dco-two-week (graph: SCALE_UP). Re-check MER in 48h.';
+  document.getElementById('fix-meta').textContent = 'Source: Neo4j Creative.budgetSignal + attributed ShopOrder edges';
   document.getElementById('fix-proposal').classList.add('show');
 
-  document.getElementById('stat-resolution').textContent = 'Awaiting approval...';
+  document.getElementById('stat-resolution').textContent = 'Awaiting approval…';
   document.getElementById('stat-resolution').style.color = '#ffd700';
 }
 
@@ -2080,32 +2029,31 @@ async function approveFix() {
   btn.textContent = 'APPLYING...';
   btn.className = 'btn-approve applying';
 
-  document.getElementById('stat-resolution').textContent = 'Applying fix...';
+  document.getElementById('stat-resolution').textContent = 'Applying budget change…';
   document.getElementById('stat-resolution').style.color = '#ff8c00';
 
   addAgentLine('');
-  addAgentLine('<span style="color:#ff8c00">Applying fix...</span>');
+  addAgentLine('<span style="color:#ff8c00">Syncing rule to ad platform (demo)…</span>');
 
-  await delay(2000);
+  await delay(1800);
 
-  addAgentLine('<span style="color:#00e676">Config updated. DB_POOL_SIZE -> 20</span>', 'success');
+  addAgentLine('<span style="color:#00e676">Bid cap ↓ on brand creative; budget reallocated to DCO winner.</span>', 'success');
 
-  await delay(1000);
-  addAgentLine('<span style="color:#00e676">Deployment restarted. Latency normal.</span>', 'success');
-  addAgentLine('<span style="color:#00e676">Logged as INC-087 in knowledge graph.</span>', 'success');
+  await delay(900);
+  addAgentLine('<span style="color:#00e676">MER checkpoint scheduled (48h). Graph node rationale updated (demo).</span>', 'success');
 
   btn.textContent = 'APPLIED';
   btn.className = 'btn-approve applied';
 
   stopTimer();
 
-  document.getElementById('stat-resolution').textContent = 'Resolved';
+  document.getElementById('stat-resolution').textContent = 'Logged';
   document.getElementById('stat-resolution').style.color = '#00e676';
-  document.getElementById('stat-incidents').textContent = '848';
+  const nCr = graphData.nodes.filter(n => n.type === 'Creative').length;
+  document.getElementById('stat-creatives').textContent = String(nCr || 4);
 
-  // Show time
   const timeStr = `${demoTimer}s`;
-  addAgentLine(`<span style="color:#00e676;font-size:14px">Time to resolution: ${timeStr}</span>`, 'success');
+  addAgentLine(`<span style="color:#00e676;font-size:14px">Time to decision: ${timeStr}</span>`, 'success');
 
   await delay(2000);
 

@@ -10,42 +10,50 @@
     {
       "name": "anthropic.api-key",
       "type": "java.lang.String",
-      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties",
+      "defaultValue": ""
     },
     {
       "name": "anthropic.base-url",
       "type": "java.lang.String",
-      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties",
+      "defaultValue": "https:\/\/api.anthropic.com"
     },
     {
       "name": "anthropic.connect-timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties",
+      "defaultValue": 60
     },
     {
       "name": "anthropic.max-tokens",
       "type": "java.lang.Integer",
-      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties",
+      "defaultValue": 8192
     },
     {
       "name": "anthropic.max-tool-rounds",
       "type": "java.lang.Integer",
-      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties",
+      "defaultValue": 24
     },
     {
       "name": "anthropic.model",
       "type": "java.lang.String",
-      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties",
+      "defaultValue": "claude-sonnet-4-20250514"
     },
     {
       "name": "anthropic.read-timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties",
+      "defaultValue": 300
     },
     {
       "name": "anthropic.version",
       "type": "java.lang.String",
-      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties",
+      "defaultValue": "2023-06-01"
     }
   ],
   "hints": []

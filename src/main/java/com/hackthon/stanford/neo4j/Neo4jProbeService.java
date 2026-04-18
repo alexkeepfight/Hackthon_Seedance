@@ -10,7 +10,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Relationship;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -24,7 +24,7 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
-@ConditionalOnBean(Driver.class)
+@Conditional(Neo4jEnabledCondition.class)
 public class Neo4jProbeService {
 
     private final Driver driver;

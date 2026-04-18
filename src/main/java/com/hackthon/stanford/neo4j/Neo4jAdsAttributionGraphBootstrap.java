@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,7 +19,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnBean(Driver.class)
+@Conditional(Neo4jEnabledCondition.class)
 public class Neo4jAdsAttributionGraphBootstrap {
 
     private final Driver driver;
@@ -30,6 +30,17 @@ public class Neo4jAdsAttributionGraphBootstrap {
             return driver.session();
         }
         return driver.session(SessionConfig.forDatabase(db.trim()));
+    }
+
+    /** True when at least one {@code :Creative} exists (skip destructive auto-seed on subsequent boots). */
+    public boolean hasCreativeNodes() {
+        try (Session session = openSession()) {
+            var rec = session.run("MATCH (c:Creative) RETURN count(c) AS n").single();
+            return rec.get("n").asLong() > 0;
+        } catch (Exception e) {
+            log.warn("hasCreativeNodes check failed: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**
