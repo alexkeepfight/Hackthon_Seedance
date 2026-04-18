@@ -9,18 +9,18 @@ package com.hackthon.stanford.neo4j;
  */
 public final class Neo4jHardcodedCredentials {
 
-    public static final String URI = "neo4j+s://ebe3519d.databases.neo4j.io";
+    public static final String URI = "neo4j+s://f8ef0970.databases.neo4j.io";
 
-    public static final String USERNAME = "ebe3519d";
+    public static final String USERNAME = "neo4j";
 
     /** 粘贴 Aura「Database password」；留空则无法认证。 */
-    public static final String PASSWORD = "jdAA9789lPbvTL9nhxR4vQhimPWfhcgI6qgES2nJ4aE";
+    public static final String PASSWORD = "lZrv5my6AiGyUhng4mBkddpTyiQ-Kgrvv2dayBVpcaw";
 
     /**
      * 逻辑库名。Aura 上若报 “database 'neo4j' does not exist”，请留空 {@code ""}，
      * 使用服务器默认库（与多数 Browser 连接行为一致）。
      */
-    public static final String DATABASE = "";
+    public static final String DATABASE = "neo4j";
 
     private Neo4jHardcodedCredentials() {}
 }
