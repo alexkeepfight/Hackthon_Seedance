@@ -11,10 +11,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * Maps free-text user {@code content} to a {@link GraphRetrievalPlan} (tokens + pseudo-Cypher description).
+ * Maps user {@code content} to a {@link GraphRetrievalPlan} for Creative-centric retrieval (加钱/减钱, ROAS, channels).
  */
 @Component
-public class SreNaturalLanguageGraphPlanner {
+public class AdsNaturalLanguageGraphPlanner {
 
     private static final Pattern SPLIT = Pattern.compile("[^a-zA-Z0-9\\p{IsHan}]+");
 
@@ -31,10 +31,12 @@ public class SreNaturalLanguageGraphPlanner {
             "something", "anything", "everything", "nothing", "someone", "anyone", "like", "just", "only"
     );
 
+    private static final Set<String> STOP_ZH = Set.of("的", "了", "吗", "呢", "和", "与", "在", "是", "我", "你", "就", "都", "要", "有");
+
     public GraphRetrievalPlan plan(String userMessage) {
         if (!StringUtils.hasText(userMessage)) {
             return new GraphRetrievalPlan(GraphRetrievalPlan.Type.KEYWORD_SEARCH, List.of(), "",
-                    "MATCH (i:Incident) WHERE false /* empty user message */ RETURN i",
+                    "MATCH (c:Creative) WHERE false RETURN c",
                     "Empty message — no retrieval.");
         }
         String trimmed = userMessage.trim();
@@ -43,10 +45,10 @@ public class SreNaturalLanguageGraphPlanner {
         if (isMetaHelpQuestion(lower)) {
             String pseudo = """
                     /* No graph scan — meta / capabilities question */
-                    RETURN "IncidentBrain SRE agent + optional Neo4j Incident/Symptom/RootCause/Fix subgraph" AS note
+                    RETURN "DeepChatBI-style ads attribution: Creative nodes with budgetSignal (加钱/减钱), ROAS, campaigns, orders" AS note
                     """;
             return new GraphRetrievalPlan(GraphRetrievalPlan.Type.META_HELP, List.of(), "", pseudo.strip(),
-                    "User asked about capabilities or help; answer from agent role without requiring graph hits.");
+                    "User asked about capabilities; answer from ads-attribution analyst role without requiring graph hits.");
         }
 
         LinkedHashSet<String> tokens = new LinkedHashSet<>();
@@ -54,10 +56,10 @@ public class SreNaturalLanguageGraphPlanner {
             if (!StringUtils.hasText(part)) {
                 continue;
             }
-            if (part.length() >= 2 && !STOP_EN.contains(part)) {
+            if (part.length() >= 2 && !STOP_EN.contains(part) && !STOP_ZH.contains(part)) {
                 tokens.add(part);
             }
-            if (tokens.size() >= 10) {
+            if (tokens.size() >= 12) {
                 break;
             }
         }
@@ -70,28 +72,31 @@ public class SreNaturalLanguageGraphPlanner {
 
         String pseudoTokens = list.isEmpty() ? "[]" : list.toString();
         String pseudoCypher = """
-                MATCH (i:Incident)
-                WHERE ANY(t IN %s WHERE toLower(i.searchBlob) CONTAINS t
-                   OR toLower(i.title) CONTAINS t
-                   OR toLower(i.summary) CONTAINS t)
-                OPTIONAL MATCH (i)-[:EXHIBITED|CAUSED_BY|RESOLVED_BY|AFFECTED|DEPENDS_ON]->(n)
-                RETURN i, collect(n) AS related
+                MATCH (c:Creative)
+                WHERE ANY(t IN %s WHERE toLower(c.searchBlob) CONTAINS t
+                   OR toLower(c.name) CONTAINS t
+                   OR toLower(coalesce(c.rationale,'')) CONTAINS t
+                   OR toLower(coalesce(c.budgetSignalZh,'')) CONTAINS t)
+                OPTIONAL MATCH (c)-[:IN_CAMPAIGN]->(camp:Campaign)-[:ON_PLATFORM]->(p:AdPlatform)
+                OPTIONAL MATCH (c)-[:ATTRIBUTED_TO]->(o:ShopOrder)
+                RETURN c, camp, p, collect(DISTINCT o) AS orders
                 """.formatted(pseudoTokens);
 
         if (list.isEmpty()) {
             pseudoCypher = """
-                    MATCH (i:Incident)
-                    WHERE toLower(i.searchBlob) CONTAINS $needle
-                       OR toLower(i.title) CONTAINS $needle
-                       OR toLower(i.summary) CONTAINS $needle
-                    OPTIONAL MATCH (i)-[:EXHIBITED|CAUSED_BY|RESOLVED_BY|AFFECTED|DEPENDS_ON]->(n)
-                    RETURN i, collect(n) AS related
-                    /* $needle = normalized full user text (no keywords extracted) */
+                    MATCH (c:Creative)
+                    WHERE toLower(c.searchBlob) CONTAINS $needle
+                       OR toLower(c.name) CONTAINS $needle
+                       OR toLower(coalesce(c.rationale,'')) CONTAINS $needle
+                    OPTIONAL MATCH (c)-[:IN_CAMPAIGN]->(camp:Campaign)-[:ON_PLATFORM]->(p:AdPlatform)
+                    OPTIONAL MATCH (c)-[:ATTRIBUTED_TO]->(o:ShopOrder)
+                    RETURN c, camp, p, collect(DISTINCT o) AS orders
+                    /* $needle = normalized full user text */
                     """.stripIndent();
         }
 
         return new GraphRetrievalPlan(GraphRetrievalPlan.Type.KEYWORD_SEARCH, list, needle, pseudoCypher.strip(),
-                "Extracted keywords from user message for substring match on Incident nodes.");
+                "Extracted keywords for substring match on Creative (归因 / ROAS / 加钱 / 减钱 / channel).");
     }
 
     private static boolean isMetaHelpQuestion(String lower) {

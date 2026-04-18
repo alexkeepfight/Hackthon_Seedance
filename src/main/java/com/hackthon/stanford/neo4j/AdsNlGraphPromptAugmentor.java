@@ -7,23 +7,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 /**
- * Turns user {@code content} into a {@link GraphRetrievalPlan}, runs Neo4j RAG (when applicable),
- * and prepends a structured block to {@code skillsPrompt} so the LLM can summarize with cited graph facts.
+ * NL → {@link GraphRetrievalPlan}, Neo4j retrieval on {@code :Creative} nodes, prepended to {@code skillsPrompt}.
  */
 @Service
 @RequiredArgsConstructor
-@ConditionalOnBean(Neo4jSreRagService.class)
-public class SreNlGraphPromptAugmentor {
+@ConditionalOnBean(Neo4jAdsAttributionRagService.class)
+public class AdsNlGraphPromptAugmentor {
 
     private static final String META_HINT = """
             The user is asking what you can do or for general help (no Neo4j graph query was run).
-            Reply briefly as IncidentBrain: SRE incident triage, postmortem-style reasoning, kubectl/Grafana-style checks,
-            connection pool / ConfigMap / DNS-class patterns, and that past incidents may live in Neo4j when seeded.
-            Offer 2–3 example questions they can ask next (e.g. connection pool 503, INC-042, db pool size).
+            Reply briefly as an ads-attribution analyst: Shopify / DeepChatBI-style MER, ROAS, POAS, first/last click,
+            Customer Journey & Order Attribution, and that seeded Creatives expose budgetSignal 加钱 vs 减钱 with rationale.
+            Offer 2–3 example questions (e.g. “哪个 Meta 创意该加钱？”, “Google ROAS 低的创意减钱依据？”).
             """;
 
-    private final SreNaturalLanguageGraphPlanner planner;
-    private final Neo4jSreRagService rag;
+    private final AdsNaturalLanguageGraphPlanner planner;
+    private final Neo4jAdsAttributionRagService rag;
 
     public AgentStreamChunk augment(AgentStreamChunk req, int limit) {
         if (req == null || !StringUtils.hasText(req.getContent())) {
