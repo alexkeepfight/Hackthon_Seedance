@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IncidentBrain</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #080b14;
+    color: #c0d0e8;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    height: 52px;
+    background: linear-gradient(180deg, #0d1525 0%, #080b14 100%);
+    border-bottom: 1px solid #1a2840;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+  }
+  .topbar .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    color: #00d4ff;
+  }
+  .topbar .brand .bolt { font-size: 20px; }
+  .topbar .status {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .topbar .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #00e676;
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px #00e676; }
+    50% { opacity: 0.4; box-shadow: 0 0 12px #00e676; }
+  }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: flex;
+    height: calc(100vh - 52px);
+  }
+
+  /* LEFT PANEL — ALERTS */
+  .left-panel {
+    width: 220px;
+    border-right: 1px solid #1a2840;
+    padding: 16px 12px;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .left-panel h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #3a5070;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+  }
+  .alert-item {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #1a2840;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #0d1525;
+  }
+  .alert-item:hover { border-color: #3a5070; }
+  .alert-item.live {
+    border-color: #ff3b3b;
+    animation: pulse-border 2s infinite;
+  }
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0px #ff3b3b00; }
+    50% { box-shadow: 0 0 12px #ff3b3b40; }
+  }
+  .alert-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .alert-svc { font-size: 11px; color: #3a5070; margin-top: 2px; }
+  .severity {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .severity.p0 { background: #ff3b3b30; color: #ff3b3b; }
+  .severity.p1 { background: #ff8c0030; color: #ff8c00; }
+  .severity.p2 { background: #3b82f630; color: #3b82f6; }
+
+  /* CENTER PANEL — GRAPH ONLY */
+  .center-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-width: 0;
+  }
+  #graph-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+  }
+
+  /* MATCH BANNER */
+  .match-banner {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ffd70020, #ffd70010);
+    border: 1px solid #ffd70060;
+    border-radius: 12px;
+    padding: 12px 24px;
+    z-index: 50;
+    display: none;
+    font-family: 'JetBrains Mono', monospace;
+    animation: fadein 0.5s ease;
+    backdrop-filter: blur(8px);
+  }
+  .match-banner.show { display: block; }
+  .match-banner .match-title {
+    color: #ffd700;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .match-banner .match-detail {
+    color: #c0d0e8;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* RIGHT — CHAT (standard conversation UI) */
+  .chat-sidebar {
+    width: 428px;
+    flex-shrink: 0;
+    border-left: 1px solid #1a2840;
+    background: #080b14;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .chat-sidebar__head {
+    padding: 12px 14px;
+    border-bottom: 1px solid #1a2840;
+    background: linear-gradient(180deg, #0d1525 0%, #080b14 100%);
+  }
+  .chat-sidebar__title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #00d4ff;
+    margin-bottom: 10px;
+  }
+  .chat-stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .chat-stat-mini {
+    background: #0a0f18;
+    border: 1px solid #1a2840;
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .chat-stat-mini .lbl {
+    font-size: 9px;
+    color: #3a5070;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .chat-stat-mini .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #060910;
+  }
+  .chat-turn {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    animation: fadein-line 0.35s forwards;
+  }
+  .chat-turn--user { align-items: flex-end; }
+  .chat-turn--assistant { align-items: flex-start; }
+  .chat-turn--system { align-items: stretch; }
+  .chat-turn--system > .stream-card { width: 100%; }
+  .chat-bubble--user {
+    max-width: 92%;
+    padding: 10px 14px;
+    border-radius: 14px 14px 4px 14px;
+    background: linear-gradient(135deg, #0c4a6e 0%, #0e7490 100%);
+    border: 1px solid #22d3ee44;
+    color: #ecfeff;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .chat-bubble--assistant-plain {
+    max-width: 100%;
+    padding: 10px 12px;
+    border-radius: 14px 14px 14px 4px;
+    background: #0d1525;
+    border: 1px solid #1a2840;
+    color: #c8d4eb;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.65;
+  }
+  .chat-bubble--assistant-plain .prefix { color: #3a5070; }
+
+  /* One assistant turn: thinking (collapsible) + answer */
+  .chat-assistant-shell {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid #1e2d4a;
+    background: linear-gradient(165deg, #0f1729 0%, #0a0f18 55%, #0c1220 100%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+  }
+  .chat-thinking-details {
+    border-bottom: 1px solid #1a2840;
+    background: rgba(6, 9, 16, 0.65);
+  }
+  .chat-thinking-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5c7399;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chat-thinking-summary::-webkit-details-marker { display: none; }
+  .chat-thinking-summary::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6366f1;
+    box-shadow: 0 0 10px #6366f180;
+    flex-shrink: 0;
+  }
+  .chat-thinking-details[open] .chat-thinking-summary { color: #8b9dc4; }
+  .chat-thinking-body {
+    padding: 0 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .chat-thinking-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    line-height: 1.5;
+    color: #6b7c99;
+    padding-left: 10px;
+    border-left: 2px solid #2a3f66;
+  }
+  .chat-answer {
+    padding: 14px 16px 16px;
+    position: relative;
+    min-height: 48px;
+  }
+  .chat-answer-body.markdown-body {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+    color: #e8edf7;
+  }
+  .chat-answer-body.markdown-body .md-p:last-child { margin-bottom: 0; }
+  .chat-answer-muted {
+    margin: 0;
+    font-size: 13px;
+    color: #5c7399;
+    font-style: italic;
+  }
+  .chat-answer-error {
+    margin: 0;
+    font-size: 13px;
+    color: #f87171;
+    line-height: 1.5;
+  }
+  .chat-answer-typing {
+    display: flex;
+    gap: 5px;
+    padding: 4px 0 8px;
+    align-items: center;
+  }
+  .chat-answer-typing span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #3a5070;
+    animation: chat-typing 1.2s ease-in-out infinite;
+  }
+  .chat-answer-typing span:nth-child(2) { animation-delay: 0.15s; }
+  .chat-answer-typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes chat-typing {
+    0%, 80%, 100% { opacity: 0.35; transform: scale(0.85); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  .chat-toast-error {
+    align-self: center;
+    max-width: 90%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #450a0a40;
+    border: 1px solid #ff3b3b33;
+    color: #fca5a5;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .chat-composer {
+    border-top: 1px solid #1a2840;
+    padding: 10px 12px 12px;
+    background: #0d1525;
+    flex-shrink: 0;
+  }
+  .chat-advanced {
+    margin-bottom: 8px;
+    border: 1px solid #1a2840;
+    border-radius: 8px;
+    background: #080b14;
+    font-size: 11px;
+  }
+  .chat-advanced summary {
+    padding: 8px 10px;
+    cursor: pointer;
+    color: #5c7399;
+    font-family: 'JetBrains Mono', monospace;
+    user-select: none;
+  }
+  .chat-advanced summary:hover { color: #8a9bb8; }
+  .chat-advanced__inner {
+    padding: 0 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .chat-advanced label { font-size: 10px; color: #3a5070; font-family: 'JetBrains Mono', monospace; }
+  .chat-advanced input[type="text"],
+  .chat-advanced input[type="number"] {
+    width: 100%;
+    box-sizing: border-box;
+    background: #0a0f18;
+    border: 1px solid #1a2840;
+    border-radius: 6px;
+    color: #c0d0e8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+  .chat-advanced__opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #8a9bb8;
+  }
+  .chat-advanced__opts label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; color: #8a9bb8; }
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .chat-input-row textarea {
+    flex: 1;
+    min-height: 44px;
+    max-height: 120px;
+    resize: vertical;
+    box-sizing: border-box;
+    background: #080b14;
+    border: 1px solid #1a2840;
+    border-radius: 10px;
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    padding: 10px 12px;
+    line-height: 1.45;
+  }
+  .chat-input-row textarea:focus {
+    outline: none;
+    border-color: #00d4ff66;
+    box-shadow: 0 0 0 1px #00d4ff22;
+  }
+  .btn-send {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    color: #042f2e;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-send:hover:not(:disabled) {
+    box-shadow: 0 0 20px #22d3ee40;
+    transform: translateY(-1px);
+  }
+  .btn-send:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .chat-voice-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-hold-talk {
+    flex: 1;
+    min-width: 140px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #2a3f66;
+    background: linear-gradient(180deg, #121a2a 0%, #0a0f18 100%);
+    color: #8a9bb8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    transition: border-color 0.15s, box-shadow 0.15s, color 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-hold-talk .mic-icon {
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.85;
+  }
+  .btn-hold-talk:hover:not(:disabled) {
+    border-color: #00d4ff55;
+    color: #c8d4eb;
+  }
+  .btn-hold-talk:active:not(:disabled),
+  .btn-hold-talk.is-listening {
+    border-color: #00e67688;
+    color: #00e676;
+    box-shadow: 0 0 0 1px #00e67633, 0 0 20px #00e67622;
+    background: linear-gradient(180deg, #0f1f18 0%, #0a1510 100%);
+  }
+  .btn-hold-talk:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .chat-voice-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #3a5070;
+    letter-spacing: 0.04em;
+    flex: 1 1 160px;
+    min-width: 0;
+  }
+  .chat-voice-hint.is-live { color: #00e676; }
+  .chat-voice-hint.is-warn { color: #fbbf24; }
+  @keyframes voice-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+  .btn-hold-talk.is-listening .mic-icon { animation: voice-pulse 1s ease-in-out infinite; }
+  .chat-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+  }
+  .btn-text-ghost {
+    background: none;
+    border: none;
+    color: #3a5070;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 4px 6px;
+  }
+  .btn-text-ghost:hover { color: #94a3b8; }
+
+  .agent-line { opacity: 0; animation: fadein-line 0.4s forwards; }
+  @keyframes fadein-line {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .agent-line .prefix { color: #3a5070; }
+  .agent-line.match { color: #ffd700; font-weight: 700; }
+  .agent-line.success { color: #00e676; }
+  .agent-line.error { color: #ff3b3b; }
+
+  /* Structured stream entries (SSE / v5 chunks) */
+  .stream-welcome {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #8a9bb8;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px dashed #1a2840;
+    background: #0a0f18;
+    text-align: center;
+    max-width: 100%;
+  }
+  .stream-welcome strong { color: #00d4ff; font-weight: 600; }
+  .stream-welcome .hint { display: block; margin-top: 6px; font-size: 10px; color: #3a5070; font-family: 'JetBrains Mono', monospace; }
+
+  .stream-card {
+    border-radius: 12px;
+    border: 1px solid #1a2840;
+    background: #0d1525;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    animation: fadein-line 0.35s forwards;
+    max-width: 100%;
+  }
+  .stream-card__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #0d1525;
+    border-bottom: 1px solid #1a2840;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #5c7399;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stream-card__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .stream-card__meta { font-size: 10px; color: #3a5070; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: auto; }
+  .stream-card__body {
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #c8d4eb;
+  }
+  .stream-card--request .stream-card__badge { background: #00d4ff22; color: #00d4ff; border: 1px solid #00d4ff40; }
+  .stream-card--request .stream-url { word-break: break-all; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8a9bb8; margin-top: 6px; }
+  .stream-card--request .stream-url-param { color: #5c7399; }
+  .stream-card--request .stream-url-val { color: #a8c4e8; }
+
+  .stream-card--phase .stream-card__badge { background: #a855f722; color: #c084fc; border: 1px solid #a855f744; }
+  .stream-card--phase .stream-card__body { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8a9bb8; }
+
+  .stream-card--round .stream-card__badge { background: #3b82f622; color: #60a5fa; border: 1px solid #3b82f644; }
+  .stream-card--round .stream-card__body { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  .stream-card--assistant .stream-card__badge { background: #00e67618; color: #34d399; border: 1px solid #00e67635; }
+  .stream-card--assistant .stream-card__body {
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #dce4f5;
+  }
+
+  .stream-card--stop .stream-card__badge { background: #64748b22; color: #94a3b8; border: 1px solid #64748b44; }
+  .stream-card--stop .stream-card__body { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8a9bb8; }
+
+  .stream-card--system .stream-card__badge { background: #1a2840; color: #5c7399; }
+  .stream-card--error { border-color: #ff3b3b44; }
+  .stream-card--error .stream-card__badge { background: #ff3b3b22; color: #ff6b6b; border-color: #ff3b3b44; }
+
+  .stream-card--raw .stream-card__body pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #8a9bb8;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  /* Markdown inside assistant cards */
+  .md-h { font-family: 'Inter', sans-serif; font-weight: 700; color: #f1f5ff; margin: 14px 0 8px; line-height: 1.3; }
+  .md-h:first-child { margin-top: 0; }
+  h2.md-h { font-size: 15px; border-bottom: 1px solid #1a2840; padding-bottom: 6px; }
+  h3.md-h { font-size: 14px; color: #00d4ff; }
+  .md-p { margin: 0 0 10px; }
+  .md-list { margin: 8px 0 12px 18px; padding: 0; color: #b8c5dc; }
+  .md-list li { margin: 4px 0; }
+  .md-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: #121a2a;
+    border: 1px solid #1a2840;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #7dd3fc;
+  }
+  .md-fence {
+    margin: 12px 0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #060a12;
+    border: 1px solid #1e3a5f;
+    overflow-x: auto;
+    position: relative;
+  }
+  .md-fence::before {
+    content: attr(data-lang);
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #3a5070;
+    margin-bottom: 8px;
+  }
+  .md-fence[data-lang=""]::before { content: 'code'; }
+  .md-fence code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: #a5f3c4;
+    white-space: pre;
+    display: block;
+  }
+
+  /* FIX PROPOSAL */
+  .fix-proposal {
+    border-top: 1px solid #1a2840;
+    padding: 16px;
+    background: #0d1525;
+    display: none;
+    animation: fadein 0.5s ease;
+  }
+  .fix-proposal.show { display: block; }
+  .fix-code {
+    background: #080b14;
+    border: 1px solid #1a2840;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #00e676;
+    margin: 8px 0;
+  }
+  .fix-meta { font-size: 11px; color: #3a5070; margin-bottom: 10px; }
+  .fix-buttons { display: flex; gap: 8px; }
+  .btn-approve {
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    background: #00e676;
+    color: #080b14;
+    transition: all 0.2s;
+  }
+  .btn-approve:hover { background: #00ff88; box-shadow: 0 0 16px #00e67640; }
+  .btn-approve.applying {
+    background: #ff8c00;
+    color: white;
+    pointer-events: none;
+  }
+  .btn-approve.applied {
+    background: #00e676;
+    color: #080b14;
+    pointer-events: none;
+  }
+
+  /* FIRE ALERT BUTTON */
+  .fire-btn {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 14px 32px;
+    border-radius: 10px;
+    border: 2px solid #ff3b3b;
+    background: #ff3b3b20;
+    color: #ff3b3b;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 60;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .fire-btn:hover {
+    background: #ff3b3b40;
+    box-shadow: 0 0 30px #ff3b3b30;
+    transform: translateX(-50%) scale(1.05);
+  }
+  .fire-btn.hidden { display: none; }
+
+  /* MTTR SPLASH */
+  .mttr-splash {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #080b14ee;
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: fadein 0.5s ease;
+  }
+  .mttr-splash.show { display: flex; }
+  .mttr-before { font-size: 48px; color: #ff3b3b; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .mttr-arrow { font-size: 36px; color: #3a5070; margin: 16px 0; }
+  .mttr-after { font-size: 72px; color: #00e676; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .mttr-label { font-size: 14px; color: #3a5070; margin-top: 24px; font-family: 'JetBrains Mono', monospace; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1a2840; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <span class="bolt">&#9889;</span> IncidentBrain
+  </div>
+  <div class="status">
+    <span id="timer" style="color: #3a5070;">00:00</span>
+    <div class="dot"></div>
+    <span style="color: #3a5070;">Neo4j Connected</span>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main">
+
+  <!-- LEFT: ALERTS -->
+  <div class="left-panel">
+    <h3>Alert Feed</h3>
+    <div id="alert-feed"></div>
+  </div>
+
+  <!-- CENTER: GRAPH + AGENT -->
+  <div class="center-panel">
+    <div id="graph-container">
+      <div class="match-banner" id="match-banner">
+        <div class="match-title" id="match-title"></div>
+        <div class="match-detail" id="match-detail"></div>
+      </div>
+      <button class="fire-btn" id="fire-btn" onclick="simulateAlert()">SIMULATE ALERT</button>
+    </div>
+    <div class="fix-proposal" id="fix-proposal">
+      <div style="font-weight: 600; font-size: 13px;">Recommended Fix</div>
+      <div class="fix-code" id="fix-code"></div>
+      <div class="fix-meta" id="fix-meta"></div>
+      <div class="fix-buttons">
+        <button class="btn-approve" id="btn-approve" onclick="approveFix()">APPROVE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: CHAT -->
+  <aside class="chat-sidebar">
+    <div class="chat-sidebar__head">
+      <div class="chat-sidebar__title">SRE Copilot</div>
+      <div class="chat-stats-row">
+        <div class="chat-stat-mini">
+          <div class="lbl">Incidents</div>
+          <div class="val cyan" id="stat-incidents" style="color:#00d4ff">847</div>
+        </div>
+        <div class="chat-stat-mini">
+          <div class="lbl">Avg MTTR</div>
+          <div class="val gold" id="stat-mttr" style="color:#ffd700">4.2m</div>
+        </div>
+        <div class="chat-stat-mini">
+          <div class="lbl">Matches</div>
+          <div class="val green" id="stat-matches" style="color:#00e676">312</div>
+        </div>
+        <div class="chat-stat-mini">
+          <div class="lbl">Status</div>
+          <div class="val" id="stat-resolution" style="color:#3a5070;font-size:12px">Idle</div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-composer">
+      <details class="chat-advanced">
+        <summary>Advanced · connection &amp; retrieval</summary>
+        <div class="chat-advanced__inner">
+          <div>
+            <label for="api-base">API base (empty = this origin)</label>
+            <input type="text" id="api-base" placeholder="http://host:8080"
+              value="http://136.109.155.225:8080" autocomplete="off" />
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <label for="graph-limit">graphLimit</label>
+            <input type="number" id="graph-limit" style="width:64px" min="1" max="10" placeholder="default" title="1–10" />
+          </div>
+          <div class="chat-advanced__opts">
+            <label><input type="checkbox" id="opt-graph-rag" checked /> graphRag</label>
+            <label><input type="checkbox" id="opt-neo-brain" /> neoBrain</label>
+            <label><input type="checkbox" id="opt-sre-brain" checked /> sreBrain</label>
+          </div>
+        </div>
+      </details>
+      <div class="chat-input-row">
+        <textarea id="agent-query" rows="2"
+          placeholder="Message IncidentBrain… (Enter to send, Shift+Enter for newline)">Patch ConfigMap DB_POOL_SIZE to 20 and rollout restart api-server</textarea>
+        <button type="button" class="btn-send" id="btn-send-chat">Send</button>
+      </div>
+      <div class="chat-voice-row">
+        <button type="button" class="btn-hold-talk" id="btn-hold-talk" aria-pressed="false" title="Hold to dictate (browser speech recognition)">
+          <span class="mic-icon" aria-hidden="true">&#127908;</span>
+          <span id="btn-hold-talk-label">Hold to talk</span>
+        </button>
+        <div class="chat-voice-hint" id="chat-voice-hint">Chrome / Edge recommended. Mic permission required.</div>
+      </div>
+      <div class="chat-toolbar">
+        <button type="button" class="btn-text-ghost" id="btn-clear-chat">Clear conversation</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- MTTR SPLASH -->
+<div class="mttr-splash" id="mttr-splash">
+  <div class="mttr-before">45 minutes</div>
+  <div class="mttr-arrow">&#x2193;</div>
+  <div class="mttr-after" id="mttr-time">28 seconds</div>
+  <div class="mttr-label">Same incident. Same resolution. 96x faster.</div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://unpkg.com/3d-force-graph@1"></script>
+<script src="https://unpkg.com/neo4j-driver@5"></script>
+<script>
+// ============================================================
+// NEO4J CONNECTION
+// ============================================================
+const NEO4J_URI = 'neo4j+ssc://ebe3519d.databases.neo4j.io';
+const NEO4J_USER = 'ebe3519d';
+const NEO4J_PASS = 'jdAA9789lPbvTL9nhxR4vQhimPWfhcgI6qgES2nJ4aE';
+const NEO4J_DB = 'ebe3519d';
+
+let graphData = { nodes: [], links: [] };
+let highlightNodes = new Set();
+let highlightLinks = new Set();
+let Graph;
+
+// ============================================================
+// COLOR & SIZE CONFIG
+// ============================================================
+const NODE_COLORS = {
+  'Incident':  '#ef4444',
+  'Service':   '#00aaff',
+  'Symptom':   '#ff8c00',
+  'RootCause': '#a855f7',
+  'Fix':       '#22c55e'
+};
+const NODE_SIZES = {
+  'Incident': 12, 'Service': 9, 'Symptom': 5, 'RootCause': 5, 'Fix': 5
+};
+const HIGHLIGHT_COLOR = '#ffd700';
+
+// ============================================================
+// FETCH GRAPH FROM NEO4J
+// ============================================================
+async function fetchGraph() {
+  const driver = neo4j.driver(NEO4J_URI, neo4j.auth.basic(NEO4J_USER, NEO4J_PASS));
+  const session = driver.session({ database: NEO4J_DB });
+
+  try {
+    const result = await session.run(`
+      MATCH (n)
+      WHERE n:Incident OR n:Service OR n:Symptom OR n:RootCause OR n:Fix
+      OPTIONAL MATCH (n)-[r]->(m)
+      WHERE m:Incident OR m:Service OR m:Symptom OR m:RootCause OR m:Fix
+      RETURN n, r, m
+    `);
+
+    const nodesMap = new Map();
+    const links = [];
+
+    result.records.forEach(record => {
+      const n = record.get('n');
+      const r = record.get('r');
+      const m = record.get('m');
+
+      if (n && !nodesMap.has(n.identity.toString())) {
+        const labels = n.labels || [];
+        const type = labels.find(l => ['Incident','Service','Symptom','RootCause','Fix'].includes(l)) || 'Unknown';
+        const props = {};
+        for (const [k, v] of Object.entries(n.properties)) {
+          props[k] = typeof v === 'object' && v.low !== undefined ? v.low : v;
+        }
+        nodesMap.set(n.identity.toString(), {
+          id: n.identity.toString(),
+          label: props.name || props.id || props.title || props.description || labels[0],
+          type: type,
+          ...props
+        });
+      }
+
+      if (m && !nodesMap.has(m.identity.toString())) {
+        const labels = m.labels || [];
+        const type = labels.find(l => ['Incident','Service','Symptom','RootCause','Fix'].includes(l)) || 'Unknown';
+        const props = {};
+        for (const [k, v] of Object.entries(m.properties)) {
+          props[k] = typeof v === 'object' && v.low !== undefined ? v.low : v;
+        }
+        nodesMap.set(m.identity.toString(), {
+          id: m.identity.toString(),
+          label: props.name || props.id || props.title || props.description || labels[0],
+          type: type,
+          ...props
+        });
+      }
+
+      if (r && n && m) {
+        links.push({
+          source: n.identity.toString(),
+          target: m.identity.toString(),
+          type: r.type,
+          label: r.type.replace(/_/g, ' ')
+        });
+      }
+    });
+
+    graphData = { nodes: Array.from(nodesMap.values()), links };
+    console.log(`Loaded ${graphData.nodes.length} nodes, ${graphData.links.length} links`);
+
+  } catch (err) {
+    console.error('Neo4j error:', err);
+    // Fallback mock data
+    graphData = createMockData();
+    console.log('Using mock data');
+  } finally {
+    await session.close();
+    await driver.close();
+  }
+
+  return graphData;
+}
+
+// ============================================================
+// MOCK DATA FALLBACK
+// ============================================================
+function createMockData() {
+  const nodes = [
+    { id: 'inc042', label: 'INC-042', type: 'Incident', title: 'API Latency Spike', severity: 'P1' },
+    { id: 'inc031', label: 'INC-031', type: 'Incident', title: 'OOMKilled Pods', severity: 'P1' },
+    { id: 'inc014', label: 'INC-014', type: 'Incident', title: 'Empty Endpoints', severity: 'P2' },
+    { id: 'inc017', label: 'INC-017', type: 'Incident', title: 'Auth Failure', severity: 'P0' },
+    { id: 'inc009', label: 'INC-009', type: 'Incident', title: 'Alert Storm', severity: 'P2' },
+    { id: 'api', label: 'api-server', type: 'Service' },
+    { id: 'pg', label: 'postgres', type: 'Service' },
+    { id: 'redis', label: 'redis', type: 'Service' },
+    { id: 'auth', label: 'auth-service', type: 'Service' },
+    { id: 'pay', label: 'payment-service', type: 'Service' },
+    { id: 'check', label: 'checkout-service', type: 'Service' },
+    { id: 'prom', label: 'prometheus', type: 'Service' },
+    { id: 'sym042', label: '503 errors, connection pool', type: 'Symptom' },
+    { id: 'sym031', label: 'Pods OOMKilled', type: 'Symptom' },
+    { id: 'sym014', label: 'Service unreachable', type: 'Symptom' },
+    { id: 'sym017', label: '100% 500 errors', type: 'Symptom' },
+    { id: 'sym009', label: '47 false alerts', type: 'Symptom' },
+    { id: 'rc042', label: 'DB_POOL_SIZE=1', type: 'RootCause' },
+    { id: 'rc031', label: 'Unbounded cache, no TTL', type: 'RootCause' },
+    { id: 'rc014', label: 'Label selector typo', type: 'RootCause' },
+    { id: 'rc017', label: 'Vault rotated secret', type: 'RootCause' },
+    { id: 'rc009', label: 'Prometheus restart', type: 'RootCause' },
+    { id: 'fix042', label: 'Set DB_POOL_SIZE=20', type: 'Fix' },
+    { id: 'fix031', label: 'Add TTL, set memory limits', type: 'Fix' },
+    { id: 'fix014', label: 'Fix label selector', type: 'Fix' },
+    { id: 'fix017', label: 'Restart pods after rotation', type: 'Fix' },
+    { id: 'fix009', label: 'Add absent() guard', type: 'Fix' },
+  ];
+  const links = [
+    { source: 'inc042', target: 'api', type: 'AFFECTED', label: 'AFFECTED' },
+    { source: 'inc042', target: 'sym042', type: 'EXHIBITED', label: 'EXHIBITED' },
+    { source: 'inc042', target: 'rc042', type: 'CAUSED_BY', label: 'CAUSED BY' },
+    { source: 'inc042', target: 'fix042', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
+    { source: 'inc031', target: 'redis', type: 'AFFECTED', label: 'AFFECTED' },
+    { source: 'inc031', target: 'sym031', type: 'EXHIBITED', label: 'EXHIBITED' },
+    { source: 'inc031', target: 'rc031', type: 'CAUSED_BY', label: 'CAUSED BY' },
+    { source: 'inc031', target: 'fix031', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
+    { source: 'inc014', target: 'check', type: 'AFFECTED', label: 'AFFECTED' },
+    { source: 'inc014', target: 'sym014', type: 'EXHIBITED', label: 'EXHIBITED' },
+    { source: 'inc014', target: 'rc014', type: 'CAUSED_BY', label: 'CAUSED BY' },
+    { source: 'inc014', target: 'fix014', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
+    { source: 'inc017', target: 'auth', type: 'AFFECTED', label: 'AFFECTED' },
+    { source: 'inc017', target: 'sym017', type: 'EXHIBITED', label: 'EXHIBITED' },
+    { source: 'inc017', target: 'rc017', type: 'CAUSED_BY', label: 'CAUSED BY' },
+    { source: 'inc017', target: 'fix017', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
+    { source: 'inc009', target: 'prom', type: 'AFFECTED', label: 'AFFECTED' },
+    { source: 'inc009', target: 'sym009', type: 'EXHIBITED', label: 'EXHIBITED' },
+    { source: 'inc009', target: 'rc009', type: 'CAUSED_BY', label: 'CAUSED BY' },
+    { source: 'inc009', target: 'fix009', type: 'RESOLVED_BY', label: 'RESOLVED BY' },
+    { source: 'api', target: 'pg', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
+    { source: 'api', target: 'redis', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
+    { source: 'check', target: 'api', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
+    { source: 'pay', target: 'pg', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
+    { source: 'auth', target: 'redis', type: 'DEPENDS_ON', label: 'DEPENDS ON' },
+  ];
+  return { nodes, links };
+}
+
+// ============================================================
+// RENDER GRAPH
+// ============================================================
+function renderGraph(data) {
+  const container = document.getElementById('graph-container');
+
+  Graph = ForceGraph3D()(container)
+    .backgroundColor('#080b14')
+    .graphData(data)
+    .nodeColor(node => highlightNodes.has(node.id) ? HIGHLIGHT_COLOR : (NODE_COLORS[node.type] || '#3a5070'))
+    .nodeVal(node => highlightNodes.has(node.id) ? (NODE_SIZES[node.type] || 5) * 3 : (NODE_SIZES[node.type] || 5))
+    .nodeLabel(node => `${node.label}`)
+    .nodeOpacity(0.9)
+    .linkColor(link => highlightLinks.has(link) ? '#ffffff' : '#ffffff70')
+    .linkWidth(link => highlightLinks.has(link) ? 2.8 : 0.85)
+    .linkDirectionalArrowLength(3)
+    .linkDirectionalArrowRelPos(1)
+    .linkLabel(link => link.label)
+    .onNodeClick(node => showNodeInfo(node))
+    .enableNodeDrag(false);
+
+  // Auto-rotate
+  let angle = 0;
+  setInterval(() => {
+    if (Graph) {
+      angle += 0.002;
+      Graph.cameraPosition({
+        x: 300 * Math.sin(angle),
+        z: 300 * Math.cos(angle)
+      });
+    }
+  }, 30);
+}
+
+function formatGraphNodeValue(v) {
+  if (v == null) return '—';
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (typeof v === 'string') return v;
+  if (typeof v === 'object') {
+    if (typeof v.low === 'number' && v.high !== undefined) return String(v.low);
+    try {
+      return JSON.stringify(v, null, 2);
+    } catch (_) {
+      return String(v);
+    }
+  }
+  return String(v);
+}
+
+function shouldSkipGraphNodeKey(k) {
+  if (k.startsWith('__')) return true;
+  const skip = new Set([
+    'id', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx', 'fy', 'fz',
+    'index', '__indexColor',
+  ]);
+  return skip.has(k);
+}
+
+function showNodeInfo(node) {
+  const titleColor = NODE_COLORS[node.type] || '#fff';
+  const titleLabel = escapeHtml(String(node.label ?? ''));
+  const titleType = escapeHtml(String(node.type ?? 'Node'));
+  const lines = [
+    `<span style="color:${titleColor};font-weight:700">[${titleType}] ${titleLabel}</span>`,
+  ];
+  const keys = Object.keys(node).filter(k => !shouldSkipGraphNodeKey(k)).sort();
+  for (const k of keys) {
+    const v = node[k];
+    if (typeof v === 'function') continue;
+    const raw = formatGraphNodeValue(v);
+    const isMultiline = raw.includes('\n');
+    const valueHtml = isMultiline
+      ? `<pre style="margin:4px 0 0;padding:8px;background:#080b14;border:1px solid #1a2840;border-radius:6px;font-size:10px;white-space:pre-wrap;word-break:break-word;color:#b8c5dc">${escapeHtml(raw)}</pre>`
+      : escapeHtml(raw);
+    lines.push(`<span class="prefix">${escapeHtml(k)}:</span> ${valueHtml}`);
+  }
+  addAgentLines(lines);
+}
+
+// ============================================================
+// ALERT FEED (from graph Incident nodes)
+// ============================================================
+function getLinkedServiceForIncident(incidentNode) {
+  const iid = String(incidentNode.id);
+  for (const l of graphData.links) {
+    const src = typeof l.source === 'object' ? String(l.source.id) : String(l.source);
+    const tgt = typeof l.target === 'object' ? String(l.target.id) : String(l.target);
+    const otherId = src === iid ? tgt : (tgt === iid ? src : null);
+    if (otherId == null) continue;
+    const lt = String(l.type || l.label || '');
+    if (!lt.toUpperCase().includes('AFFECT')) continue;
+    const n = graphData.nodes.find(x => String(x.id) === otherId);
+    if (n && n.type === 'Service') return n.label || n.name || 'service';
+  }
+  return null;
+}
+
+function incidentFeedTimeHint(node) {
+  const keys = ['time', 'date', 'detected_at', 'created', 'occurred_at', 'opened_at', 'updated'];
+  for (const k of keys) {
+    const v = node[k];
+    if (v != null && String(v).trim() !== '') return String(v);
+  }
+  return 'in graph';
+}
+
+function focusGraphNode(node) {
+  if (!node || !Graph) return;
+  highlightNodes.clear();
+  highlightLinks.clear();
+  highlightNodes.add(node.id);
+  graphData.links.forEach(l => {
+    const src = typeof l.source === 'object' ? l.source.id : l.source;
+    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
+    if (src === node.id || tgt === node.id) highlightLinks.add(l);
+  });
+  Graph.nodeColor(Graph.nodeColor());
+  Graph.linkColor(Graph.linkColor());
+}
+
+function renderAlertFeedFromGraph() {
+  const feed = document.getElementById('alert-feed');
+  if (!feed) return;
+
+  const incidents = graphData.nodes
+    .filter(n => n.type === 'Incident')
+    .sort((a, b) => String(a.label || a.id).localeCompare(String(b.label || b.id)));
+
+  if (incidents.length === 0) {
+    feed.innerHTML =
+      '<div class="alert-item" style="cursor:default;border-style:dashed">' +
+      '<div style="font-size:11px;color:#3a5070">No <strong>Incident</strong> nodes in the graph.</div></div>';
+    return;
+  }
+
+  feed.innerHTML = incidents
+    .map((inc) => {
+      const id = escapeHtml(String(inc.label || inc.id || inc.name || 'Incident'));
+      const rawSev = String(inc.severity || 'P2').trim();
+      const sevLower = rawSev.toLowerCase().replace(/\s/g, '');
+      const sevClass = ['p0', 'p1', 'p2', 'p3'].includes(sevLower) ? sevLower : 'p2';
+      const sevDisplay = escapeHtml(rawSev.toUpperCase());
+      const svc = getLinkedServiceForIncident(inc);
+      const svcHtml = escapeHtml(svc || '—');
+      const when = escapeHtml(incidentFeedTimeHint(inc));
+      const nid = escapeHtml(String(inc.id));
+      return (
+        `<div class="alert-item" data-incident-id="${nid}" role="button" tabindex="0">` +
+        `<div style="display:flex;justify-content:space-between;align-items:center">` +
+        `<span class="alert-id">${id}</span>` +
+        `<span class="severity ${sevClass}">${sevDisplay}</span>` +
+        `</div>` +
+        `<div class="alert-svc">${svcHtml} &middot; ${when}</div>` +
+        `</div>`
+      );
+    })
+    .join('');
+
+  feed.querySelectorAll('.alert-item[data-incident-id]').forEach((el) => {
+    const open = () => {
+      const nid = el.getAttribute('data-incident-id');
+      const node = graphData.nodes.find((n) => String(n.id) === nid);
+      if (!node) return;
+      focusGraphNode(node);
+      showNodeInfo(node);
+    };
+    el.addEventListener('click', open);
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        open();
+      }
+    });
+  });
+}
+
+// ============================================================
+// LIVE SSE: GET /api/chat/stream/v5
+// ============================================================
+let streamAgentAbort = null;
+let streamRequestSeq = 0;
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+/** Split buffer into completed SSE events (double newline); each event merges all `data:` lines with \n. */
+function consumeSseEventStrings(buffer) {
+  const events = [];
+  let rest = buffer;
+  let idx;
+  while ((idx = rest.indexOf('\n\n')) >= 0) {
+    const block = rest.slice(0, idx);
+    rest = rest.slice(idx + 2);
+    if (!block.trim()) continue;
+    const dataLines = [];
+    for (const line of block.split(/\r?\n/)) {
+      if (line.startsWith('data:')) {
+        dataLines.push(line.slice(5).trimStart());
+      }
+    }
+    if (dataLines.length) events.push(dataLines.join('\n'));
+  }
+  return { events, rest };
+}
+
+function getChatMessages() {
+  return document.getElementById('chat-messages');
+}
+
+function scrollChatToBottom() {
+  const el = getChatMessages();
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+function appendChatTurn(role, node) {
+  const root = getChatMessages();
+  if (!root || !node) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-turn chat-turn--' + role;
+  wrap.appendChild(node);
+  root.appendChild(wrap);
+  scrollChatToBottom();
+}
+
+function addUserMessage(text) {
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble chat-bubble--user';
+  bubble.textContent = text;
+  appendChatTurn('user', bubble);
+}
+
+function addChatToastError(msg) {
+  const root = getChatMessages();
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-turn chat-turn--system';
+  const t = document.createElement('div');
+  t.className = 'chat-toast-error';
+  t.textContent = msg;
+  wrap.appendChild(t);
+  root.appendChild(wrap);
+  scrollChatToBottom();
+}
+
+/** One in-flight assistant reply: collapsible Thinking + main markdown answer (no raw JSON in UI). */
+let activeStreamAssistantCtx = null;
+
+function humanizePhase(phase) {
+  const p = String(phase);
+  const map = {
+    tool_loop_start: 'Planning next steps…',
+    tool_loop_end: 'Tool loop completed.',
+  };
+  return map[p] || p.replace(/_/g, ' ');
+}
+
+function startAssistantStreamBlock(requestId) {
+  finalizeAssistantStreamBlock();
+  const root = getChatMessages();
+  const turn = document.createElement('div');
+  turn.className = 'chat-turn chat-turn--assistant';
+  const shell = document.createElement('div');
+  shell.className = 'chat-assistant-shell agent-line';
+
+  const details = document.createElement('details');
+  details.className = 'chat-thinking-details';
+  const summary = document.createElement('summary');
+  summary.className = 'chat-thinking-summary';
+  summary.textContent = 'Thinking';
+  const thinkingBody = document.createElement('div');
+  thinkingBody.className = 'chat-thinking-body';
+  details.appendChild(summary);
+  details.appendChild(thinkingBody);
+
+  const answer = document.createElement('div');
+  answer.className = 'chat-answer';
+  const answerBody = document.createElement('div');
+  answerBody.className = 'chat-answer-body markdown-body';
+  const typing = document.createElement('div');
+  typing.className = 'chat-answer-typing';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  answer.appendChild(answerBody);
+  answer.appendChild(typing);
+
+  shell.appendChild(details);
+  shell.appendChild(answer);
+  turn.appendChild(shell);
+  root.appendChild(turn);
+
+  activeStreamAssistantCtx = {
+    requestId,
+    turn,
+    shell,
+    details,
+    summary,
+    thinkingBody,
+    answerBody,
+    typing,
+    thinkingCount: 0,
+    deltaAcc: '',
+    hadError: false,
+  };
+  scrollChatToBottom();
+}
+
+function hideTypingIndicator() {
+  const ctx = activeStreamAssistantCtx;
+  if (ctx && ctx.typing && ctx.typing.parentNode) {
+    ctx.typing.remove();
+    ctx.typing = null;
+  }
+}
+
+function pushThinkingLine(text) {
+  const ctx = activeStreamAssistantCtx;
+  if (!ctx) return;
+  const line = document.createElement('div');
+  line.className = 'chat-thinking-line';
+  line.textContent = text;
+  ctx.thinkingBody.appendChild(line);
+  ctx.thinkingCount++;
+  ctx.summary.textContent = ctx.thinkingCount === 1 ? 'Thinking' : `Thinking · ${ctx.thinkingCount} steps`;
+  scrollChatToBottom();
+}
+
+function setAnswerError(msg) {
+  const ctx = activeStreamAssistantCtx;
+  if (!ctx) return;
+  ctx.hadError = true;
+  hideTypingIndicator();
+  ctx.answerBody.innerHTML = `<p class="chat-answer-error">${escapeHtml(msg)}</p>`;
+  scrollChatToBottom();
+}
+
+function setAnswerMarkdown(html) {
+  const ctx = activeStreamAssistantCtx;
+  if (!ctx) return;
+  hideTypingIndicator();
+  ctx.answerBody.innerHTML = html;
+  ctx.deltaAcc = '';
+  scrollChatToBottom();
+}
+
+function appendAnswerDeltaText(t, rid) {
+  const ctx = activeStreamAssistantCtx;
+  if (!ctx || (rid != null && ctx.requestId !== rid)) return;
+  hideTypingIndicator();
+  ctx.deltaAcc = (ctx.deltaAcc || '') + t;
+  ctx.answerBody.innerHTML = escapeHtml(ctx.deltaAcc).replace(/\n/g, '<br>');
+  scrollChatToBottom();
+}
+
+function finalizeAssistantStreamBlock() {
+  const ctx = activeStreamAssistantCtx;
+  if (!ctx) return;
+  hideTypingIndicator();
+  activeStreamAssistantCtx = null;
+  if (ctx.thinkingCount === 0) ctx.details.style.display = 'none';
+  else ctx.details.open = false;
+  const ans = ctx.answerBody;
+  const hasText = ans.innerHTML.trim() !== '' || ans.textContent.trim() !== '';
+  if (!hasText && !ctx.hadError) {
+    ans.innerHTML = '<p class="chat-answer-muted">No reply text was returned.</p>';
+  }
+  scrollChatToBottom();
+}
+
+function isSkippableTelemetry(o) {
+  if (!o || typeof o !== 'object') return true;
+  if (o.type === 'done') return true;
+  const hide = ['tool_call', 'tool_result', 'processing', 'start', 'complete', 'interrupt', 'ping'];
+  if (o.type && hide.includes(String(o.type))) return true;
+  return false;
+}
+
+function dispatchStreamChunk(o, depth, rid) {
+  const ctx = activeStreamAssistantCtx;
+  if (!ctx || ctx.requestId !== rid || !o || typeof o !== 'object') return;
+  if (depth > 8) return;
+
+  if (typeof o.errorMessage === 'string' && o.errorMessage.length) {
+    setAnswerError(o.errorMessage);
+    return;
+  }
+
+  if (o.type === 'done' || o.type === 'stop_reason') return;
+
+  if (o.phase != null && o.type == null) {
+    pushThinkingLine(humanizePhase(o.phase));
+    return;
+  }
+
+  const t = o.type;
+  if (t === 'round') {
+    pushThinkingLine('Reasoning pass ' + String(o.data));
+    return;
+  }
+  if (t === 'assistant_text') {
+    setAnswerMarkdown(renderBasicMarkdown(o.data == null ? '' : String(o.data)));
+    return;
+  }
+
+  if (typeof o.plainData === 'string' && o.plainData.trim() !== '') {
+    const p = o.plainData.trim();
+    const again = tryParseChunkJson(p);
+    if (again && typeof again === 'object' && again.type != null) {
+      dispatchStreamChunk(again, depth + 1, rid);
+      return;
+    }
+    setAnswerMarkdown(renderBasicMarkdown(o.plainData));
+    return;
+  }
+
+  if (o.delta && o.delta.text != null) {
+    appendAnswerDeltaText(String(o.delta.text));
+    return;
+  }
+
+  if (o.content != null && String(o.content).trim() !== '') {
+    setAnswerMarkdown(renderBasicMarkdown(String(o.content)));
+    return;
+  }
+
+  if (isSkippableTelemetry(o)) return;
+}
+
+function inlineMd(s) {
+  let t = escapeHtml(s);
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');
+  return t;
+}
+
+function renderMdTextChunk(text) {
+  if (!text || !text.trim()) return '';
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const parts = [];
+  let listKind = null;
+
+  function closeList() {
+    if (listKind) {
+      parts.push(listKind === 'ol' ? '</ol>' : '</ul>');
+      listKind = null;
+    }
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (trimmed === '') {
+      closeList();
+      continue;
+    }
+    const ul = /^[-*]\s+(.+)$/.exec(trimmed);
+    const ol = /^(\d+)\.\s+(.+)$/.exec(trimmed);
+    if (ul) {
+      if (listKind !== 'ul') {
+        closeList();
+        parts.push('<ul class="md-list">');
+        listKind = 'ul';
+      }
+      parts.push('<li>' + inlineMd(ul[1]) + '</li>');
+    } else if (ol) {
+      if (listKind !== 'ol') {
+        closeList();
+        parts.push('<ol class="md-list md-ol">');
+        listKind = 'ol';
+      }
+      parts.push('<li>' + inlineMd(ol[2]) + '</li>');
+    } else {
+      closeList();
+      if (/^###\s+/.test(trimmed)) {
+        parts.push('<h3 class="md-h">' + inlineMd(trimmed.replace(/^###\s+/, '')) + '</h3>');
+      } else if (/^##\s+/.test(trimmed)) {
+        parts.push('<h2 class="md-h">' + inlineMd(trimmed.replace(/^##\s+/, '')) + '</h2>');
+      } else if (/^#\s+/.test(trimmed)) {
+        if (/^#\s*\d/.test(trimmed)) {
+          parts.push('<p class="md-p">' + inlineMd(line) + '</p>');
+        } else {
+          parts.push('<h2 class="md-h">' + inlineMd(trimmed.replace(/^#\s+/, '')) + '</h2>');
+        }
+      } else {
+        parts.push('<p class="md-p">' + inlineMd(line) + '</p>');
+      }
+    }
+  }
+  closeList();
+  return parts.join('');
+}
+
+/** Safe subset: headings, lists, bold, inline code, fenced blocks (```bash etc.). */
+function renderBasicMarkdown(src) {
+  if (src == null || src === '') return '';
+  const chunks = [];
+  const re = /```(\w*)\r?\n?([\s\S]*?)```/g;
+  let pos = 0;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    if (m.index > pos) chunks.push(renderMdTextChunk(src.slice(pos, m.index)));
+    const lang = (m[1] || '').trim();
+    const code = m[2].replace(/\r\n/g, '\n').replace(/\n$/, '');
+    chunks.push(
+      `<pre class="md-fence" data-lang="${escapeHtml(lang)}"><code>${escapeHtml(code)}</code></pre>`
+    );
+    pos = m.index + m[0].length;
+  }
+  if (pos < src.length) chunks.push(renderMdTextChunk(src.slice(pos)));
+  return chunks.join('');
+}
+
+function tryParseChunkJson(str) {
+  try {
+    return JSON.parse(str);
+  } catch (_) {
+    return null;
+  }
+}
+
+/** Tolerate log-style prefixes: `chunk {...}` or `[type] chunk {...}`. */
+function sanitizeSseDataString(s) {
+  let t = String(s).trim();
+  t = t.replace(/^\[[^\]]*]\s*chunk\s+/i, '');
+  t = t.replace(/^chunk\s+/i, '');
+  return t.trim();
+}
+
+function unwrapPlainDataObject(o) {
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return o;
+  const pd = o.plainData;
+  if (typeof pd !== 'string') return o;
+  const t = pd.trim();
+  if (!t.startsWith('{') && !t.startsWith('[')) return o;
+  const inner = tryParseChunkJson(t);
+  if (inner && typeof inner === 'object' && !Array.isArray(inner) && (inner.type != null || inner.phase != null)) {
+    return inner;
+  }
+  return o;
+}
+
+function displayStreamEvent(raw, depth = 0, rid) {
+  const ctx = activeStreamAssistantCtx;
+  if (raw == null || !String(raw).trim() || !ctx || ctx.requestId !== rid) return;
+  if (depth > 10) return;
+  const str = sanitizeSseDataString(raw);
+  let o = tryParseChunkJson(str);
+  if (!o || typeof o !== 'object') {
+    const t = str.trim();
+    if (t.startsWith('{')) return;
+    if (t) appendAnswerDeltaText(t);
+    return;
+  }
+  o = unwrapPlainDataObject(o);
+  dispatchStreamChunk(o, depth, rid);
+}
+
+async function streamAgentFromApi() {
+  const baseEl = document.getElementById('api-base');
+  let base = (baseEl && baseEl.value) ? baseEl.value.trim().replace(/\/$/, '') : '';
+  if (!base) base = window.location.origin;
+
+  const ta = document.getElementById('agent-query');
+  const content = (ta && ta.value || '').trim();
+  if (!content) {
+    addChatToastError('Type a message to send.');
+    return;
+  }
+
+  const params = new URLSearchParams();
+  params.set('content', content);
+  params.set('graphRag', document.getElementById('opt-graph-rag').checked ? 'true' : 'false');
+  params.set('neoBrain', document.getElementById('opt-neo-brain').checked ? 'true' : 'false');
+  params.set('sreBrain', document.getElementById('opt-sre-brain').checked ? 'true' : 'false');
+  const gl = document.getElementById('graph-limit');
+  if (gl && gl.value !== '') {
+    const n = parseInt(gl.value, 10);
+    if (!Number.isNaN(n)) params.set('graphLimit', String(n));
+  }
+
+  const url = `${base}/api/chat/stream/v5?${params.toString()}`;
+  const btn = document.getElementById('btn-send-chat');
+  const rid = ++streamRequestSeq;
+  if (streamAgentAbort) streamAgentAbort.abort();
+  streamAgentAbort = new AbortController();
+
+  addUserMessage(content);
+  if (ta) ta.value = '';
+
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  startAssistantStreamBlock(rid);
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'text/event-stream' },
+      signal: streamAgentAbort.signal,
+      credentials: 'omit',
+    });
+    if (!res.ok) {
+      setAnswerError(`Couldn’t reach the assistant (${res.status}). ${res.statusText || ''}`.trim());
+      return;
+    }
+    const reader = res.body && res.body.getReader();
+    if (!reader) {
+      setAnswerError('This browser can’t read the response stream.');
+      return;
+    }
+    const dec = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const { events, rest } = consumeSseEventStrings(buf);
+      buf = rest;
+      for (const ev of events) displayStreamEvent(ev, 0, rid);
+    }
+    buf += dec.decode();
+    const flushed = consumeSseEventStrings(buf);
+    for (const ev of flushed.events) displayStreamEvent(ev, 0, rid);
+    if (flushed.rest.trim()) displayStreamEvent(flushed.rest.trim(), 0, rid);
+  } catch (e) {
+    const ctx = activeStreamAssistantCtx;
+    if (!ctx || ctx.requestId !== rid) {
+      /* superseded by a newer send */
+    } else if (e && e.name === 'AbortError') {
+      if (!ctx.hadError) {
+        const ans = ctx.answerBody;
+        const empty = !ans.innerHTML.trim() && !ans.textContent.trim();
+        if (empty) {
+          setAnswerMarkdown('<p class="chat-answer-muted">Request cancelled.</p>');
+        }
+      }
+    } else {
+      setAnswerError(String(e && e.message ? e.message : e));
+    }
+  } finally {
+    if (activeStreamAssistantCtx && activeStreamAssistantCtx.requestId === rid) {
+      finalizeAssistantStreamBlock();
+    }
+    streamAgentAbort = null;
+    if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
+  }
+}
+
+// ============================================================
+// CHAT HELPERS (demo + graph node inspector)
+// ============================================================
+function addAgentLine(text, cls = '') {
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble chat-bubble--assistant-plain ' + cls;
+  bubble.innerHTML = text;
+  appendChatTurn('assistant', bubble);
+}
+
+function addAgentWelcome() {
+  const el = document.createElement('div');
+  el.className = 'stream-welcome agent-line';
+  el.innerHTML =
+    '<strong>IncidentBrain</strong> — describe an incident or ask for runbooks and commands.<span class="hint">Try the graph in the center, or <strong>SIMULATE ALERT</strong> for a guided demo.</span>';
+  appendChatTurn('system', el);
+}
+
+function addAgentLines(lines) {
+  const root = getChatMessages();
+  root.innerHTML = '';
+  lines.forEach((l, i) => {
+    setTimeout(() => addAgentLine(l), i * 50);
+  });
+}
+
+function wireChatComposer() {
+  const btn = document.getElementById('btn-send-chat');
+  const ta = document.getElementById('agent-query');
+  const clearBtn = document.getElementById('btn-clear-chat');
+  if (btn) btn.addEventListener('click', () => streamAgentFromApi());
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      getChatMessages().innerHTML = '';
+      addAgentWelcome();
+    });
+  }
+  if (ta) {
+    ta.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        streamAgentFromApi();
+      }
+    });
+  }
+  wireHoldToTalk();
+}
+
+// ============================================================
+// VOICE: hold-to-talk → #agent-query (Web Speech API)
+// ============================================================
+let voiceRecognition = null;
+let voiceHoldActive = false;
+let voiceHoldBase = '';
+
+function getSpeechRecognitionCtor() {
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+function joinTextWithSpace(prefix, addition) {
+  const raw = String(addition || '');
+  if (!raw.trim()) return prefix;
+  const p = String(prefix || '');
+  if (!p) return raw;
+  return /\s$/.test(p) ? p + raw : p + ' ' + raw;
+}
+
+function applyHoldTalkListeningUi(listening) {
+  const b = document.getElementById('btn-hold-talk');
+  const lab = document.getElementById('btn-hold-talk-label');
+  const hint = document.getElementById('chat-voice-hint');
+  if (b) {
+    b.classList.toggle('is-listening', listening);
+    b.setAttribute('aria-pressed', listening ? 'true' : 'false');
+  }
+  if (lab) lab.textContent = listening ? 'Listening…' : 'Hold to talk';
+  if (hint) {
+    hint.classList.remove('is-live', 'is-warn');
+    if (listening) {
+      hint.textContent = 'Release to finish. Text is appended to the message box.';
+      hint.classList.add('is-live');
+    } else if (getSpeechRecognitionCtor()) {
+      hint.textContent = 'Chrome / Edge recommended. Mic permission required.';
+    }
+  }
+}
+
+function stopVoiceHold(reason) {
+  voiceHoldActive = false;
+  applyHoldTalkListeningUi(false);
+  if (voiceRecognition) {
+    try {
+      voiceRecognition.onresult = null;
+      voiceRecognition.onerror = null;
+      voiceRecognition.onend = null;
+      voiceRecognition.stop();
+    } catch (_) { /* noop */ }
+    voiceRecognition = null;
+  }
+  const hint = document.getElementById('chat-voice-hint');
+  if (hint && reason && getSpeechRecognitionCtor()) {
+    hint.classList.add('is-warn');
+    hint.textContent = reason;
+  }
+}
+
+function wireHoldToTalk() {
+  const Ctor = getSpeechRecognitionCtor();
+  const btn = document.getElementById('btn-hold-talk');
+  const ta = document.getElementById('agent-query');
+  const hint = document.getElementById('chat-voice-hint');
+  if (!btn || !ta) return;
+
+  if (!Ctor) {
+    btn.disabled = true;
+    if (hint) {
+      hint.textContent = 'Speech recognition not supported in this browser.';
+      hint.classList.add('is-warn');
+    }
+    return;
+  }
+
+  const startHold = () => {
+    if (voiceHoldActive) return;
+    voiceHoldActive = true;
+    voiceHoldBase = ta.value;
+    applyHoldTalkListeningUi(true);
+
+    try {
+      voiceRecognition = new Ctor();
+    } catch (e) {
+      stopVoiceHold('Could not start speech recognition.');
+      addChatToastError(String(e && e.message ? e.message : e));
+      return;
+    }
+
+    const r = voiceRecognition;
+    r.lang = (navigator.language || 'en-US');
+    r.continuous = true;
+    r.interimResults = true;
+
+    r.onresult = (e) => {
+      if (!voiceHoldActive) return;
+      let session = '';
+      for (let i = 0; i < e.results.length; i++) {
+        session += e.results[i][0].transcript;
+      }
+      const merged = joinTextWithSpace(voiceHoldBase, session);
+      ta.value = merged;
+      ta.scrollTop = ta.scrollHeight;
+    };
+
+    r.onerror = (ev) => {
+      const code = ev && ev.error ? String(ev.error) : 'unknown';
+      if (code === 'aborted' || code === 'no-speech') return;
+      const msg =
+        code === 'not-allowed' || code === 'service-not-allowed'
+          ? 'Microphone blocked — allow mic for this site.'
+          : 'Speech error: ' + code;
+      stopVoiceHold(msg);
+      addChatToastError(msg);
+    };
+
+    r.onend = () => {
+      if (voiceHoldActive) {
+        try { r.start(); } catch (_) { /* may throw if already starting */ }
+      }
+    };
+
+    try {
+      r.start();
+    } catch (e) {
+      stopVoiceHold('Could not start listening.');
+      addChatToastError(String(e && e.message ? e.message : e));
+    }
+  };
+
+  const endHold = () => {
+    if (!voiceHoldActive) return;
+    voiceHoldActive = false;
+    applyHoldTalkListeningUi(false);
+    if (voiceRecognition) {
+      try {
+        voiceRecognition.onend = null;
+        voiceRecognition.stop();
+      } catch (_) { /* noop */ }
+    }
+    voiceRecognition = null;
+    const h = document.getElementById('chat-voice-hint');
+    if (h && getSpeechRecognitionCtor()) {
+      h.classList.remove('is-live', 'is-warn');
+      h.textContent = 'Chrome / Edge recommended. Mic permission required.';
+    }
+  };
+
+  btn.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    btn.setPointerCapture(e.pointerId);
+    startHold();
+  });
+  btn.addEventListener('pointerup', endHold);
+  btn.addEventListener('pointercancel', endHold);
+  btn.addEventListener('lostpointercapture', () => {
+    if (voiceHoldActive) endHold();
+  });
+  btn.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      if (!voiceHoldActive) startHold();
+    }
+  });
+  btn.addEventListener('keyup', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      endHold();
+    }
+  });
+}
+
+// ============================================================
+// SIMULATE ALERT (DEMO FLOW)
+// ============================================================
+let demoTimer = 0;
+let timerInterval;
+
+function startTimer() {
+  demoTimer = 0;
+  const el = document.getElementById('timer');
+  el.style.color = '#ff3b3b';
+  timerInterval = setInterval(() => {
+    demoTimer++;
+    const m = Math.floor(demoTimer / 60);
+    const s = demoTimer % 60;
+    el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  document.getElementById('timer').style.color = '#00e676';
+}
+
+async function simulateAlert() {
+  const btn = document.getElementById('fire-btn');
+  btn.classList.add('hidden');
+  getChatMessages().innerHTML = '';
+
+  // Find nodes by label or by type
+  const apiNode = graphData.nodes.find(n => n.label === 'api-server' || n.name === 'api-server');
+  const incNode = graphData.nodes.find(n => n.label === 'INC-042' || n.id === 'inc042' || (n.title && n.title.includes('Latency')));
+  const rcNode = graphData.nodes.find(n => n.type === 'RootCause' && (n.label.includes('POOL') || n.id === 'rc042'));
+  const fixNode = graphData.nodes.find(n => n.type === 'Fix' && (n.label.includes('POOL') || n.id === 'fix042'));
+  const symNode = graphData.nodes.find(n => n.type === 'Symptom' && (n.label.includes('503') || n.label.includes('connection') || n.id === 'sym042'));
+
+  // Add live alert to feed
+  const feed = document.getElementById('alert-feed');
+  const liveAlert = document.createElement('div');
+  liveAlert.className = 'alert-item live';
+  liveAlert.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="alert-id">INC-087</span>
+      <span class="severity p1" style="animation: blink-fast 0.5s infinite">P1 LIVE</span>
+    </div>
+    <div class="alert-svc">api-server &middot; just now</div>
+  `;
+  feed.insertBefore(liveAlert, feed.firstChild);
+
+  startTimer();
+  document.getElementById('stat-resolution').textContent = 'Investigating...';
+  document.getElementById('stat-resolution').style.color = '#ff8c00';
+
+  // Phase 1: Alert received
+  addAgentLine('<span style="color:#ff3b3b">ALERT:</span> api-server p99 latency > 5s (P1)');
+
+  await delay(1000);
+  addAgentLine('<span class="prefix">></span> IncidentBrain investigating...');
+
+  await delay(800);
+  addAgentLine('<span class="prefix">|--</span> Checking cluster... api-server pod: CrashLoopBackOff');
+
+  // Highlight api-server
+  if (apiNode) {
+    highlightNodes.add(apiNode.id);
+    Graph.nodeColor(Graph.nodeColor()); // refresh
+  }
+
+  await delay(1000);
+  addAgentLine('<span class="prefix">|--</span> App logs: "Cannot acquire connection from pool"');
+
+  if (symNode) highlightNodes.add(symNode.id);
+
+  await delay(1000);
+  addAgentLine('<span class="prefix">|--</span> Querying knowledge graph for similar incidents...');
+
+  await delay(1500);
+
+  // Phase 2: Match found!
+  if (incNode) {
+    highlightNodes.add(incNode.id);
+    // Highlight the link between api and incident
+    graphData.links.forEach(l => {
+      const src = typeof l.source === 'object' ? l.source.id : l.source;
+      const tgt = typeof l.target === 'object' ? l.target.id : l.target;
+      if ((src === apiNode?.id && tgt === incNode?.id) || (src === incNode?.id && tgt === apiNode?.id)) {
+        highlightLinks.add(l);
+      }
+    });
+  }
+  Graph.nodeColor(Graph.nodeColor());
+  Graph.linkColor(Graph.linkColor());
+
+  addAgentLine('', 'match');
+  addAgentLine('<span style="color:#ffd700;font-size:14px">&#10024; MATCH FOUND: INC-042 (94% similarity, 3 weeks ago)</span>', 'match');
+  addAgentLine('<span class="prefix">|  </span> Symptoms: Same -- connection pool exhaustion on api-server');
+  addAgentLine('<span class="prefix">|  </span> Root cause: DB_POOL_SIZE misconfiguration');
+  addAgentLine('<span class="prefix">|  </span> Fix: Set DB_POOL_SIZE=20, restart deployment');
+
+  // Show match banner
+  document.getElementById('match-title').textContent = 'MATCH FOUND: INC-042 (94% similarity)';
+  document.getElementById('match-detail').textContent = 'Root cause: DB_POOL_SIZE=1 | Fix: Set to 20, restart';
+  document.getElementById('match-banner').classList.add('show');
+
+  document.getElementById('stat-matches').textContent = '313';
+
+  await delay(1500);
+
+  // Phase 3: Verify
+  addAgentLine('<span class="prefix">|--</span> Verifying... current DB_POOL_SIZE = <span style="color:#00e676">1</span> CONFIRMED');
+
+  if (rcNode) highlightNodes.add(rcNode.id);
+  if (fixNode) highlightNodes.add(fixNode.id);
+  // Highlight links to root cause and fix
+  graphData.links.forEach(l => {
+    const src = typeof l.source === 'object' ? l.source.id : l.source;
+    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
+    if (tgt === rcNode?.id || tgt === fixNode?.id || src === rcNode?.id || src === fixNode?.id) {
+      highlightLinks.add(l);
+    }
+  });
+  Graph.nodeColor(Graph.nodeColor());
+  Graph.linkColor(Graph.linkColor());
+
+  await delay(1000);
+
+  addAgentLine('<span class="prefix">|</span>');
+  addAgentLine('<span class="prefix">\\--</span> <span style="color:#00e676">RECOMMENDED FIX:</span> Set DB_POOL_SIZE=20');
+  addAgentLine('    <span class="prefix">Confidence:</span> 94% | <span class="prefix">Source:</span> INC-042');
+
+  // Show fix proposal
+  document.getElementById('fix-code').textContent = 'kubectl patch configmap api-config -n production -p \'{"data":{"DB_POOL_SIZE":"20"}}\' && kubectl rollout restart deployment/api-server -n production';
+  document.getElementById('fix-meta').textContent = 'Based on INC-042 | Confidence: 94% | ~1 min recovery';
+  document.getElementById('fix-proposal').classList.add('show');
+
+  document.getElementById('stat-resolution').textContent = 'Awaiting approval...';
+  document.getElementById('stat-resolution').style.color = '#ffd700';
+}
+
+async function approveFix() {
+  const btn = document.getElementById('btn-approve');
+  btn.textContent = 'APPLYING...';
+  btn.className = 'btn-approve applying';
+
+  document.getElementById('stat-resolution').textContent = 'Applying fix...';
+  document.getElementById('stat-resolution').style.color = '#ff8c00';
+
+  addAgentLine('');
+  addAgentLine('<span style="color:#ff8c00">Applying fix...</span>');
+
+  await delay(2000);
+
+  addAgentLine('<span style="color:#00e676">Config updated. DB_POOL_SIZE -> 20</span>', 'success');
+
+  await delay(1000);
+  addAgentLine('<span style="color:#00e676">Deployment restarted. Latency normal.</span>', 'success');
+  addAgentLine('<span style="color:#00e676">Logged as INC-087 in knowledge graph.</span>', 'success');
+
+  btn.textContent = 'APPLIED';
+  btn.className = 'btn-approve applied';
+
+  stopTimer();
+
+  document.getElementById('stat-resolution').textContent = 'Resolved';
+  document.getElementById('stat-resolution').style.color = '#00e676';
+  document.getElementById('stat-incidents').textContent = '848';
+
+  // Show time
+  const timeStr = `${demoTimer}s`;
+  addAgentLine(`<span style="color:#00e676;font-size:14px">Time to resolution: ${timeStr}</span>`, 'success');
+
+  await delay(2000);
+
+  // MTTR splash
+  document.getElementById('mttr-time').textContent = timeStr;
+  document.getElementById('mttr-splash').classList.add('show');
+
+  await delay(5000);
+  document.getElementById('mttr-splash').classList.remove('show');
+
+  // Reset button
+  setTimeout(() => {
+    document.getElementById('fire-btn').classList.remove('hidden');
+    highlightNodes.clear();
+    highlightLinks.clear();
+    Graph.nodeColor(Graph.nodeColor());
+    Graph.linkColor(Graph.linkColor());
+    document.getElementById('match-banner').classList.remove('show');
+    document.getElementById('fix-proposal').classList.remove('show');
+  }, 1000);
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  getChatMessages().innerHTML = '';
+  addAgentWelcome();
+
+  const data = await fetchGraph();
+  renderGraph(data);
+  renderAlertFeedFromGraph();
+}
+
+wireChatComposer();
+init();
+</script>
+</body>
+</html>
+

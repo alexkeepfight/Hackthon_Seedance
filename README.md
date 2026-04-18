@@ -1,1 +1,1 @@
-# Hackthon_Seedance
+# Hackthon_Stanford

@@ -1,0 +1,3 @@
+# Neo4j 连接已改为源码常量，不再使用本文件或 NEO4J_* 环境变量。
+# 请编辑：src/main/java/com/hackthon/stanford/neo4j/Neo4jHardcodedCredentials.java
+#   URI, USERNAME, PASSWORD, DATABASE

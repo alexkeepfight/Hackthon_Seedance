@@ -1,0 +1,52 @@
+{
+  "groups": [
+    {
+      "name": "anthropic",
+      "type": "com.hackthon.stanford.config.AnthropicProperties",
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "anthropic.api-key",
+      "type": "java.lang.String",
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    },
+    {
+      "name": "anthropic.base-url",
+      "type": "java.lang.String",
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    },
+    {
+      "name": "anthropic.connect-timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    },
+    {
+      "name": "anthropic.max-tokens",
+      "type": "java.lang.Integer",
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    },
+    {
+      "name": "anthropic.max-tool-rounds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    },
+    {
+      "name": "anthropic.model",
+      "type": "java.lang.String",
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    },
+    {
+      "name": "anthropic.read-timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    },
+    {
+      "name": "anthropic.version",
+      "type": "java.lang.String",
+      "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    }
+  ],
+  "hints": []
+}
