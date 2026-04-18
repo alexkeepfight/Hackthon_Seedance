@@ -1,90 +1,288 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DeepChatBI · Ads Attribution</title>
+<title>广告预算智能 · ChatBI</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
 
-  body {
-    background: #080b14;
-    color: #c0d0e8;
-    font-family: 'Inter', sans-serif;
-    overflow: hidden;
-    height: 100vh;
+  :root {
+    --bg: #060910;
+    --surface: #0d1525;
+    --surface2: #0a0f18;
+    --border: #1e2d4a;
+    --text: #e8edf7;
+    --muted: #64748b;
+    --accent: #06b6d4;
+    --accent2: #00e676;
   }
 
-  /* TOP BAR */
-  .topbar {
-    height: 52px;
-    background: linear-gradient(180deg, #0d1525 0%, #080b14 100%);
-    border-bottom: 1px solid #1a2840;
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body.budget-ai-app {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  .app-header {
+    flex-shrink: 0;
+    height: 56px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
-    z-index: 100;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0d1525 0%, var(--bg) 100%);
+    z-index: 50;
   }
-  .topbar .brand {
+  .app-header__brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+  }
+  .app-logo {
+    font-size: 22px;
+    filter: drop-shadow(0 0 8px #06b6d466);
+  }
+  .app-title {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: 16px;
-    color: #00d4ff;
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: -0.02em;
   }
-  .topbar .brand .bolt { font-size: 20px; }
-  .topbar .status {
+  .app-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .app-header__meta {
     display: flex;
     align-items: center;
-    gap: 16px;
-    font-size: 13px;
+    gap: 14px;
     font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
   }
-  .topbar .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #00e676;
-    animation: pulse-dot 2s infinite;
-  }
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; box-shadow: 0 0 4px #00e676; }
-    50% { opacity: 0.4; box-shadow: 0 0 12px #00e676; }
-  }
-
-  /* MAIN LAYOUT */
-  .main {
-    display: flex;
-    height: calc(100vh - 52px);
-  }
-
-  /* LEFT PANEL — ALERTS */
-  .left-panel {
-    width: 220px;
-    border-right: 1px solid #1a2840;
-    padding: 16px 12px;
-    overflow-y: auto;
-    flex-shrink: 0;
-  }
-  .left-panel h3 {
-    font-family: 'JetBrains Mono', monospace;
+  .app-timer { color: var(--muted); min-width: 52px; text-align: right; }
+  .pill {
+    padding: 4px 10px;
+    border-radius: 999px;
     font-size: 11px;
-    color: #3a5070;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 12px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
   }
+  .pill--ok {
+    border-color: #00e67644;
+    color: #34d399;
+    background: #00e67612;
+  }
+
+  /* KPI */
+  .kpi-strip {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(13, 21, 37, 0.6);
+  }
+  .kpi-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: var(--surface2);
+  }
+  .kpi-card__lbl {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .kpi-card__val {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+  }
+  .kpi-card__val.cyan { color: #22d3ee; }
+  .kpi-card__row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 15px;
+    flex-wrap: wrap;
+  }
+  .kpi-div { color: var(--muted); }
+  .kpi-status { font-size: 13px !important; color: var(--muted); }
+
+  /* WORKSPACE */
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 0;
+    min-height: 0;
+  }
+  @media (max-width: 1080px) {
+    .workspace {
+      grid-template-columns: 1fr;
+      grid-template-rows: minmax(280px, 55vh) auto;
+      overflow-y: auto;
+    }
+    .insights-column {
+      border-left: none !important;
+      border-top: 1px solid var(--border);
+      max-height: 42vh;
+    }
+  }
+
+  /* CHATBI MAIN */
+  .chatbi-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    padding: 14px 16px 18px;
+  }
+  .chatbi-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: linear-gradient(165deg, #0f1729 0%, #0a0f18 50%, #080d18 100%);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+  }
+  .chatbi-card__head {
+    flex-shrink: 0;
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    background: rgba(6, 9, 16, 0.45);
+  }
+  .chatbi-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+  }
+  .chatbi-desc {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+    max-width: 52ch;
+  }
+  .chip {
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #6366f144;
+    background: #6366f118;
+    color: #a5b4fc;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .chatbi-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 14px 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #060910;
+  }
+
+  .chatbi-composer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--border);
+    padding: 12px 14px 14px;
+    background: var(--surface);
+  }
+
+  /* INSIGHTS COLUMN */
+  .insights-column {
+    border-left: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .insight-block {
+    padding: 14px 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .insight-block--graph {
+    flex: 1;
+    min-height: 200px;
+  }
+  .insight-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .insight-feed {
+    overflow-y: auto;
+    max-height: 220px;
+  }
+  .graph-stage {
+    position: relative;
+    flex: 1;
+    min-height: 280px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #050810;
+    overflow: hidden;
+  }
+  #graph-container {
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+  }
+
+  /* Creative feed items */
   .alert-item {
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 8px;
-    border: 1px solid #1a2840;
+    border: 1px solid var(--border);
     cursor: pointer;
     transition: all 0.2s;
-    background: #0d1525;
+    background: var(--surface2);
   }
   .alert-item:hover { border-color: #3a5070; }
   .alert-item.live {
@@ -100,7 +298,7 @@
     font-size: 12px;
     font-weight: 600;
   }
-  .alert-svc { font-size: 11px; color: #3a5070; margin-top: 2px; }
+  .alert-svc { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .severity {
     display: inline-block;
     font-size: 10px;
@@ -113,112 +311,105 @@
   .severity.p1 { background: #ff8c0030; color: #ff8c00; }
   .severity.p2 { background: #3b82f630; color: #3b82f6; }
 
-  /* CENTER PANEL — GRAPH ONLY */
-  .center-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    min-width: 0;
-  }
-  #graph-container {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-    min-height: 200px;
-  }
-
-  /* MATCH BANNER */
+  /* Match banner & demo controls */
   .match-banner {
     position: absolute;
-    top: 20px;
+    top: 14px;
     left: 50%;
     transform: translateX(-50%);
     background: linear-gradient(135deg, #ffd70020, #ffd70010);
     border: 1px solid #ffd70060;
     border-radius: 12px;
-    padding: 12px 24px;
+    padding: 10px 18px;
     z-index: 50;
     display: none;
     font-family: 'JetBrains Mono', monospace;
-    animation: fadein 0.5s ease;
     backdrop-filter: blur(8px);
+    max-width: 92%;
+    text-align: center;
   }
   .match-banner.show { display: block; }
   .match-banner .match-title {
     color: #ffd700;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 13px;
   }
   .match-banner .match-detail {
     color: #c0d0e8;
-    font-size: 12px;
+    font-size: 11px;
     margin-top: 4px;
   }
-
   @keyframes fadein {
     from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
   }
 
-  /* RIGHT — CHAT (standard conversation UI) */
-  .chat-sidebar {
-    width: 428px;
-    flex-shrink: 0;
-    border-left: 1px solid #1a2840;
-    background: #080b14;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-  .chat-sidebar__head {
-    padding: 12px 14px;
-    border-bottom: 1px solid #1a2840;
-    background: linear-gradient(180deg, #0d1525 0%, #080b14 100%);
-  }
-  .chat-sidebar__title {
+  .fire-btn {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 2px solid #f97316;
+    background: #f9731625;
+    color: #fb923c;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #00d4ff;
-    margin-bottom: 10px;
-  }
-  .chat-stats-row {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-  .chat-stat-mini {
-    background: #0a0f18;
-    border: 1px solid #1a2840;
-    border-radius: 8px;
-    padding: 8px 10px;
-  }
-  .chat-stat-mini .lbl {
-    font-size: 9px;
-    color: #3a5070;
-    text-transform: uppercase;
+    cursor: pointer;
+    z-index: 60;
     letter-spacing: 0.06em;
-    font-family: 'JetBrains Mono', monospace;
   }
-  .chat-stat-mini .val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 15px;
-    font-weight: 700;
-    margin-top: 2px;
+  .fire-btn:hover {
+    background: #f9731640;
+    box-shadow: 0 0 24px #f9731630;
   }
+  .fire-btn.hidden { display: none; }
 
-  .chat-messages {
-    flex: 1;
+  .fix-proposal {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-top: 1px solid var(--border);
+    padding: 12px 14px;
+    background: rgba(13, 21, 37, 0.96);
+    display: none;
+    z-index: 55;
+    max-height: 45%;
     overflow-y: auto;
-    padding: 14px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: #060910;
   }
+  .fix-proposal.show { display: block; }
+  .fix-code {
+    background: #080b14;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    margin: 8px 0;
+    line-height: 1.45;
+  }
+  .fix-meta { font-size: 10px; color: var(--muted); margin-bottom: 8px; }
+  .fix-buttons { display: flex; gap: 8px; }
+  .btn-approve {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--accent2);
+    color: #080b14;
+  }
+  .btn-approve:hover { filter: brightness(1.08); }
+  .btn-approve.applying { background: #ff8c00; color: #fff; pointer-events: none; }
+  .btn-approve.applied { pointer-events: none; opacity: 0.85; }
+
+  /* Chat turns & bubbles */
   .chat-turn {
     display: flex;
     flex-direction: column;
@@ -228,15 +419,13 @@
   .chat-turn--user { align-items: flex-end; }
   .chat-turn--assistant { align-items: flex-start; }
   .chat-turn--system { align-items: stretch; }
-  .chat-turn--system > .stream-card { width: 100%; }
   .chat-bubble--user {
-    max-width: 92%;
+    max-width: 88%;
     padding: 10px 14px;
     border-radius: 14px 14px 4px 14px;
     background: linear-gradient(135deg, #0c4a6e 0%, #0e7490 100%);
     border: 1px solid #22d3ee44;
     color: #ecfeff;
-    font-family: 'Inter', sans-serif;
     font-size: 13px;
     line-height: 1.5;
     white-space: pre-wrap;
@@ -245,28 +434,27 @@
   .chat-bubble--assistant-plain {
     max-width: 100%;
     padding: 10px 12px;
-    border-radius: 14px 14px 14px 4px;
-    background: #0d1525;
-    border: 1px solid #1a2840;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
     color: #c8d4eb;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     line-height: 1.65;
   }
-  .chat-bubble--assistant-plain .prefix { color: #3a5070; }
+  .chat-bubble--assistant-plain .prefix { color: var(--muted); }
 
-  /* One assistant turn: thinking (collapsible) + answer */
   .chat-assistant-shell {
     max-width: 100%;
     width: 100%;
-    border-radius: 16px;
-    border: 1px solid #1e2d4a;
+    border-radius: 14px;
+    border: 1px solid var(--border);
     background: linear-gradient(165deg, #0f1729 0%, #0a0f18 55%, #0c1220 100%);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
     overflow: hidden;
   }
   .chat-thinking-details {
-    border-bottom: 1px solid #1a2840;
+    border-bottom: 1px solid var(--border);
     background: rgba(6, 9, 16, 0.65);
   }
   .chat-thinking-summary {
@@ -291,7 +479,6 @@
     height: 6px;
     border-radius: 50%;
     background: #6366f1;
-    box-shadow: 0 0 10px #6366f180;
     flex-shrink: 0;
   }
   .chat-thinking-details[open] .chat-thinking-summary { color: #8b9dc4; }
@@ -320,7 +507,6 @@
     line-height: 1.65;
     color: #e8edf7;
   }
-  .chat-answer-body.markdown-body .md-p:last-child { margin-bottom: 0; }
   .chat-answer-muted {
     margin: 0;
     font-size: 13px;
@@ -362,20 +548,13 @@
     border: 1px solid #ff3b3b33;
     color: #fca5a5;
     font-size: 12px;
-    font-family: 'Inter', sans-serif;
   }
 
-  .chat-composer {
-    border-top: 1px solid #1a2840;
-    padding: 10px 12px 12px;
-    background: #0d1525;
-    flex-shrink: 0;
-  }
   .chat-advanced {
-    margin-bottom: 8px;
-    border: 1px solid #1a2840;
-    border-radius: 8px;
-    background: #080b14;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface2);
     font-size: 11px;
   }
   .chat-advanced summary {
@@ -385,22 +564,21 @@
     font-family: 'JetBrains Mono', monospace;
     user-select: none;
   }
-  .chat-advanced summary:hover { color: #8a9bb8; }
   .chat-advanced__inner {
     padding: 0 10px 10px;
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
-  .chat-advanced label { font-size: 10px; color: #3a5070; font-family: 'JetBrains Mono', monospace; }
+  .chat-advanced label { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
   .chat-advanced input[type="text"],
   .chat-advanced input[type="number"] {
     width: 100%;
     box-sizing: border-box;
-    background: #0a0f18;
-    border: 1px solid #1a2840;
+    background: var(--bg);
+    border: 1px solid var(--border);
     border-radius: 6px;
-    color: #c0d0e8;
+    color: var(--text);
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     padding: 6px 8px;
@@ -413,35 +591,35 @@
     font-size: 10px;
     color: #8a9bb8;
   }
-  .chat-advanced__opts label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; color: #8a9bb8; }
+  .chat-advanced__opts label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+
   .chat-input-row {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: flex-end;
   }
   .chat-input-row textarea {
     flex: 1;
-    min-height: 44px;
-    max-height: 120px;
+    min-height: 48px;
+    max-height: 140px;
     resize: vertical;
-    box-sizing: border-box;
-    background: #080b14;
-    border: 1px solid #1a2840;
-    border-radius: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
     color: #e2e8f0;
     font-family: 'Inter', sans-serif;
     font-size: 13px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     line-height: 1.45;
   }
   .chat-input-row textarea:focus {
     outline: none;
-    border-color: #00d4ff66;
-    box-shadow: 0 0 0 1px #00d4ff22;
+    border-color: #06b6d466;
+    box-shadow: 0 0 0 1px #06b6d622;
   }
   .btn-send {
-    padding: 10px 16px;
-    border-radius: 10px;
+    padding: 12px 20px;
+    border-radius: 12px;
     border: none;
     background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
     color: #042f2e;
@@ -450,18 +628,15 @@
     font-weight: 700;
     cursor: pointer;
     flex-shrink: 0;
-    transition: transform 0.15s, box-shadow 0.15s;
   }
-  .btn-send:hover:not(:disabled) {
-    box-shadow: 0 0 20px #22d3ee40;
-    transform: translateY(-1px);
-  }
-  .btn-send:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn-send:hover:not(:disabled) { filter: brightness(1.06); }
+  .btn-send:disabled { opacity: 0.45; cursor: not-allowed; }
+
   .chat-voice-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 8px;
+    margin-top: 10px;
     flex-wrap: wrap;
   }
   .btn-hold-talk {
@@ -475,62 +650,34 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: none;
-    transition: border-color 0.15s, box-shadow 0.15s, color 0.15s, background 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
   }
-  .btn-hold-talk .mic-icon {
-    font-size: 14px;
-    line-height: 1;
-    opacity: 0.85;
-  }
-  .btn-hold-talk:hover:not(:disabled) {
-    border-color: #00d4ff55;
-    color: #c8d4eb;
-  }
-  .btn-hold-talk:active:not(:disabled),
   .btn-hold-talk.is-listening {
     border-color: #00e67688;
     color: #00e676;
-    box-shadow: 0 0 0 1px #00e67633, 0 0 20px #00e67622;
-    background: linear-gradient(180deg, #0f1f18 0%, #0a1510 100%);
   }
-  .btn-hold-talk:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
+  .btn-hold-talk:disabled { opacity: 0.4; cursor: not-allowed; }
   .chat-voice-hint {
     font-family: 'JetBrains Mono', monospace;
     font-size: 9px;
-    color: #3a5070;
-    letter-spacing: 0.04em;
-    flex: 1 1 160px;
-    min-width: 0;
+    color: var(--muted);
+    flex: 1 1 140px;
   }
-  .chat-voice-hint.is-live { color: #00e676; }
-  .chat-voice-hint.is-warn { color: #fbbf24; }
-  @keyframes voice-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.45; }
-  }
-  .btn-hold-talk.is-listening .mic-icon { animation: voice-pulse 1s ease-in-out infinite; }
   .chat-toolbar {
     display: flex;
     justify-content: flex-end;
-    margin-top: 6px;
+    margin-top: 8px;
   }
   .btn-text-ghost {
     background: none;
     border: none;
-    color: #3a5070;
+    color: var(--muted);
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     cursor: pointer;
@@ -538,113 +685,36 @@
   }
   .btn-text-ghost:hover { color: #94a3b8; }
 
+  .stream-welcome {
+    font-size: 12px;
+    line-height: 1.55;
+    color: #8a9bb8;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px dashed var(--border);
+    background: var(--surface2);
+    text-align: center;
+    max-width: 100%;
+  }
+  .stream-welcome strong { color: var(--accent); font-weight: 600; }
+  .stream-welcome .hint {
+    display: block;
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
   .agent-line { opacity: 0; animation: fadein-line 0.4s forwards; }
   @keyframes fadein-line {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .agent-line .prefix { color: #3a5070; }
-  .agent-line.match { color: #ffd700; font-weight: 700; }
-  .agent-line.success { color: #00e676; }
-  .agent-line.error { color: #ff3b3b; }
 
-  /* Structured stream entries (SSE / v5 chunks) */
-  .stream-welcome {
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    line-height: 1.55;
-    color: #8a9bb8;
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px dashed #1a2840;
-    background: #0a0f18;
-    text-align: center;
-    max-width: 100%;
-  }
-  .stream-welcome strong { color: #00d4ff; font-weight: 600; }
-  .stream-welcome .hint { display: block; margin-top: 6px; font-size: 10px; color: #3a5070; font-family: 'JetBrains Mono', monospace; }
-
-  .stream-card {
-    border-radius: 12px;
-    border: 1px solid #1a2840;
-    background: #0d1525;
-    overflow: hidden;
-    font-family: 'Inter', sans-serif;
-    animation: fadein-line 0.35s forwards;
-    max-width: 100%;
-  }
-  .stream-card__head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background: #0d1525;
-    border-bottom: 1px solid #1a2840;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #5c7399;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .stream-card__badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-  }
-  .stream-card__meta { font-size: 10px; color: #3a5070; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: auto; }
-  .stream-card__body {
-    padding: 12px 14px;
-    font-size: 13px;
-    line-height: 1.6;
-    color: #c8d4eb;
-  }
-  .stream-card--request .stream-card__badge { background: #00d4ff22; color: #00d4ff; border: 1px solid #00d4ff40; }
-  .stream-card--request .stream-url { word-break: break-all; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8a9bb8; margin-top: 6px; }
-  .stream-card--request .stream-url-param { color: #5c7399; }
-  .stream-card--request .stream-url-val { color: #a8c4e8; }
-
-  .stream-card--phase .stream-card__badge { background: #a855f722; color: #c084fc; border: 1px solid #a855f744; }
-  .stream-card--phase .stream-card__body { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8a9bb8; }
-
-  .stream-card--round .stream-card__badge { background: #3b82f622; color: #60a5fa; border: 1px solid #3b82f644; }
-  .stream-card--round .stream-card__body { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-
-  .stream-card--assistant .stream-card__badge { background: #00e67618; color: #34d399; border: 1px solid #00e67635; }
-  .stream-card--assistant .stream-card__body {
-    font-family: 'Inter', sans-serif;
-    font-size: 13.5px;
-    line-height: 1.65;
-    color: #dce4f5;
-  }
-
-  .stream-card--stop .stream-card__badge { background: #64748b22; color: #94a3b8; border: 1px solid #64748b44; }
-  .stream-card--stop .stream-card__body { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8a9bb8; }
-
-  .stream-card--system .stream-card__badge { background: #1a2840; color: #5c7399; }
-  .stream-card--error { border-color: #ff3b3b44; }
-  .stream-card--error .stream-card__badge { background: #ff3b3b22; color: #ff6b6b; border-color: #ff3b3b44; }
-
-  .stream-card--raw .stream-card__body pre {
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #8a9bb8;
-    max-height: 240px;
-    overflow-y: auto;
-  }
-
-  /* Markdown inside assistant cards */
-  .md-h { font-family: 'Inter', sans-serif; font-weight: 700; color: #f1f5ff; margin: 14px 0 8px; line-height: 1.3; }
+  .md-h { font-weight: 700; color: #f1f5ff; margin: 14px 0 8px; line-height: 1.3; }
   .md-h:first-child { margin-top: 0; }
-  h2.md-h { font-size: 15px; border-bottom: 1px solid #1a2840; padding-bottom: 6px; }
-  h3.md-h { font-size: 14px; color: #00d4ff; }
+  h2.md-h { font-size: 15px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  h3.md-h { font-size: 14px; color: var(--accent); }
   .md-p { margin: 0 0 10px; }
   .md-list { margin: 8px 0 12px 18px; padding: 0; color: #b8c5dc; }
   .md-list li { margin: 4px 0; }
@@ -652,7 +722,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     background: #121a2a;
-    border: 1px solid #1a2840;
+    border: 1px solid var(--border);
     padding: 1px 6px;
     border-radius: 4px;
     color: #7dd3fc;
@@ -664,7 +734,6 @@
     background: #060a12;
     border: 1px solid #1e3a5f;
     overflow-x: auto;
-    position: relative;
   }
   .md-fence::before {
     content: attr(data-lang);
@@ -673,7 +742,7 @@
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #3a5070;
+    color: var(--muted);
     margin-bottom: 8px;
   }
   .md-fence[data-lang=""]::before { content: 'code'; }
@@ -686,215 +755,150 @@
     display: block;
   }
 
-  /* FIX PROPOSAL */
-  .fix-proposal {
-    border-top: 1px solid #1a2840;
-    padding: 16px;
-    background: #0d1525;
-    display: none;
-    animation: fadein 0.5s ease;
-  }
-  .fix-proposal.show { display: block; }
-  .fix-code {
-    background: #080b14;
-    border: 1px solid #1a2840;
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: #00e676;
-    margin: 8px 0;
-  }
-  .fix-meta { font-size: 11px; color: #3a5070; margin-bottom: 10px; }
-  .fix-buttons { display: flex; gap: 8px; }
-  .btn-approve {
-    padding: 8px 20px;
-    border-radius: 6px;
-    border: none;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    background: #00e676;
-    color: #080b14;
-    transition: all 0.2s;
-  }
-  .btn-approve:hover { background: #00ff88; box-shadow: 0 0 16px #00e67640; }
-  .btn-approve.applying {
-    background: #ff8c00;
-    color: white;
-    pointer-events: none;
-  }
-  .btn-approve.applied {
-    background: #00e676;
-    color: #080b14;
-    pointer-events: none;
-  }
-
-  /* FIRE ALERT BUTTON */
-  .fire-btn {
-    position: absolute;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 14px 32px;
-    border-radius: 10px;
-    border: 2px solid #ff3b3b;
-    background: #ff3b3b20;
-    color: #ff3b3b;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    z-index: 60;
-    transition: all 0.2s;
-    letter-spacing: 1px;
-  }
-  .fire-btn:hover {
-    background: #ff3b3b40;
-    box-shadow: 0 0 30px #ff3b3b30;
-    transform: translateX(-50%) scale(1.05);
-  }
-  .fire-btn.hidden { display: none; }
-
-  /* MTTR SPLASH */
   .mttr-splash {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    inset: 0;
     background: #080b14ee;
     z-index: 200;
     display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    animation: fadein 0.5s ease;
   }
   .mttr-splash.show { display: flex; }
-  .mttr-before { font-size: 48px; color: #ff3b3b; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-  .mttr-arrow { font-size: 36px; color: #3a5070; margin: 16px 0; }
-  .mttr-after { font-size: 72px; color: #00e676; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-  .mttr-label { font-size: 14px; color: #3a5070; margin-top: 24px; font-family: 'JetBrains Mono', monospace; }
+  .mttr-before { font-size: 40px; color: #ff3b3b; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .mttr-arrow { font-size: 32px; color: var(--muted); margin: 16px 0; }
+  .mttr-after { font-size: 64px; color: var(--accent2); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .mttr-label { font-size: 13px; color: var(--muted); margin-top: 20px; font-family: 'JetBrains Mono', monospace; text-align: center; max-width: 360px; line-height: 1.5; }
 
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 3px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #1a2840; border-radius: 3px; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
 </head>
-<body>
+<body class="budget-ai-app">
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="brand">
-    <span class="bolt">&#9889;</span> DeepChatBI Attribution
-  </div>
-  <div class="status">
-    <span id="timer" style="color: #3a5070;">00:00</span>
-    <div class="dot"></div>
-    <span style="color: #3a5070;">Neo4j Connected</span>
-  </div>
-</div>
-
-<!-- MAIN LAYOUT -->
-<div class="main">
-
-  <!-- LEFT: ALERTS -->
-  <div class="left-panel">
-    <h3>Creative budget signals</h3>
-    <div id="alert-feed"></div>
-  </div>
-
-  <!-- CENTER: GRAPH + AGENT -->
-  <div class="center-panel">
-    <div id="graph-container">
-      <div class="match-banner" id="match-banner">
-        <div class="match-title" id="match-title"></div>
-        <div class="match-detail" id="match-detail"></div>
-      </div>
-      <button class="fire-btn" id="fire-btn" onclick="simulateAlert()">SIMULATE BUDGET REVIEW</button>
-    </div>
-    <div class="fix-proposal" id="fix-proposal">
-      <div style="font-weight: 600; font-size: 13px;">Recommended budget action</div>
-      <div class="fix-code" id="fix-code"></div>
-      <div class="fix-meta" id="fix-meta"></div>
-      <div class="fix-buttons">
-        <button class="btn-approve" id="btn-approve" onclick="approveFix()">APPROVE</button>
-      </div>
+<header class="app-header">
+  <div class="app-header__brand">
+    <span class="app-logo" aria-hidden="true">&#9889;</span>
+    <div>
+      <div class="app-title">广告预算管理</div>
+      <div class="app-sub">DeepChatBI · 归因图谱驱动 · ChatBI</div>
     </div>
   </div>
+  <div class="app-header__meta">
+    <span id="timer" class="app-timer">00:00</span>
+    <span class="pill pill--ok">Neo4j</span>
+  </div>
+</header>
 
-  <!-- RIGHT: CHAT -->
-  <aside class="chat-sidebar">
-    <div class="chat-sidebar__head">
-      <div class="chat-sidebar__title">Ads Attribution Copilot</div>
-      <div class="chat-stats-row">
-        <div class="chat-stat-mini">
-          <div class="lbl">Creatives</div>
-          <div class="val cyan" id="stat-creatives" style="color:#00d4ff">4</div>
-        </div>
-        <div class="chat-stat-mini">
-          <div class="lbl">Avg MTTR</div>
-          <div class="val gold" id="stat-mttr" style="color:#ffd700">4.2m</div>
-        </div>
-        <div class="chat-stat-mini">
-          <div class="lbl">Matches</div>
-          <div class="val green" id="stat-matches" style="color:#00e676">312</div>
-        </div>
-        <div class="chat-stat-mini">
-          <div class="lbl">Status</div>
-          <div class="val" id="stat-resolution" style="color:#3a5070;font-size:12px">Idle</div>
-        </div>
-      </div>
+<section class="kpi-strip" aria-label="关键指标">
+  <div class="kpi-card">
+    <div class="kpi-card__lbl">周期广告花费</div>
+    <div class="kpi-card__val mono" id="kpi-spend">—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__lbl">Blended ROAS</div>
+    <div class="kpi-card__val mono" id="kpi-roas">—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__lbl">追踪创意</div>
+    <div class="kpi-card__val mono cyan" id="stat-creatives">4</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__lbl">图谱命中 / 流程状态</div>
+    <div class="kpi-card__row">
+      <span class="mono" id="stat-matches">0</span>
+      <span class="kpi-div">·</span>
+      <span class="mono kpi-status" id="stat-resolution">Idle</span>
     </div>
-    <div class="chat-messages" id="chat-messages"></div>
-    <div class="chat-composer">
-      <details class="chat-advanced">
-        <summary>Advanced · connection &amp; retrieval</summary>
-        <div class="chat-advanced__inner">
-          <div>
-            <label for="api-base">API base (empty = this origin)</label>
-            <input type="text" id="api-base" placeholder="http://host:8080"
-              value="http://136.109.155.225:8080" autocomplete="off" />
+  </div>
+</section>
+
+<div class="workspace">
+  <main class="chatbi-column">
+    <section class="chatbi-card" aria-label="ChatBI">
+      <div class="chatbi-card__head">
+        <div>
+          <h1 class="chatbi-title">ChatBI</h1>
+          <p class="chatbi-desc">
+            自然语言查询投放花费、ROAS/MER、创意加减仓（加钱/减钱）、渠道与订单归因；默认开启 Graph RAG 引用 Neo4j 知识图谱事实。
+          </p>
+        </div>
+        <span class="chip">Live · SSE</span>
+      </div>
+      <div id="chat-messages" class="chat-messages chatbi-messages"></div>
+      <div class="chat-composer chatbi-composer">
+        <details class="chat-advanced">
+          <summary>高级 · API 与检索</summary>
+          <div class="chat-advanced__inner">
+            <div>
+              <label for="api-base">后端 API Base（留空则当前域名）</label>
+              <input type="text" id="api-base" placeholder="http://localhost:8080" value="" autocomplete="off" />
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <label for="graph-limit">graphLimit</label>
+              <input type="number" id="graph-limit" style="width:72px" min="1" max="10" placeholder="默认" title="1–10" />
+            </div>
+            <div class="chat-advanced__opts">
+              <label><input type="checkbox" id="opt-graph-rag" checked /> graphRag（图谱增强）</label>
+              <label><input type="checkbox" id="opt-neo-brain" /> neoBrain</label>
+              <label><input type="checkbox" id="opt-sre-brain" /> sreBrain（遗留 playbook）</label>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <label for="graph-limit">graphLimit</label>
-            <input type="number" id="graph-limit" style="width:64px" min="1" max="10" placeholder="default" title="1–10" />
-          </div>
-          <div class="chat-advanced__opts">
-            <label><input type="checkbox" id="opt-graph-rag" checked /> graphRag</label>
-            <label><input type="checkbox" id="opt-neo-brain" /> neoBrain</label>
-            <label><input type="checkbox" id="opt-sre-brain" /> sreBrain (legacy playbook)</label>
+        </details>
+        <div class="chat-input-row">
+          <textarea id="agent-query" rows="3"
+            placeholder="例如：Google 品牌创意 ROAS&lt;1，建议减预算吗？哪些 Meta 创意值得加钱？"></textarea>
+          <button type="button" class="btn-send" id="btn-send-chat">发送</button>
+        </div>
+        <div class="chat-voice-row">
+          <button type="button" class="btn-hold-talk" id="btn-hold-talk" aria-pressed="false" title="按住说话">
+            <span class="mic-icon" aria-hidden="true">&#127908;</span>
+            <span id="btn-hold-talk-label">按住说话</span>
+          </button>
+          <div class="chat-voice-hint" id="chat-voice-hint">推荐 Chrome / Edge，需麦克风权限。</div>
+        </div>
+        <div class="chat-toolbar">
+          <button type="button" class="btn-text-ghost" id="btn-clear-chat">清空对话</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="insights-column">
+    <section class="insight-block">
+      <h2 class="insight-heading">创意预算信号</h2>
+      <div id="alert-feed" class="insight-feed"></div>
+    </section>
+    <section class="insight-block insight-block--graph">
+      <h2 class="insight-heading">归因知识图谱</h2>
+      <div class="graph-stage">
+        <div id="graph-container"></div>
+        <div class="match-banner" id="match-banner">
+          <div class="match-title" id="match-title"></div>
+          <div class="match-detail" id="match-detail"></div>
+        </div>
+        <button type="button" class="fire-btn" id="fire-btn" onclick="simulateAlert()">场景演练 · 预算复盘</button>
+        <div class="fix-proposal" id="fix-proposal">
+          <div style="font-weight:600;font-size:12px;color:#e8edf7;margin-bottom:6px;">建议预算动作（演示）</div>
+          <div class="fix-code" id="fix-code"></div>
+          <div class="fix-meta" id="fix-meta"></div>
+          <div class="fix-buttons">
+            <button type="button" class="btn-approve" id="btn-approve" onclick="approveFix()">确认采纳</button>
           </div>
         </div>
-      </details>
-      <div class="chat-input-row">
-        <textarea id="agent-query" rows="2"
-          placeholder="Ask which Creative should 加钱 or 减钱… (Enter to send)">Google 搜索品牌创意 ROAS 低于 1，该不该减钱？</textarea>
-        <button type="button" class="btn-send" id="btn-send-chat">Send</button>
       </div>
-      <div class="chat-voice-row">
-        <button type="button" class="btn-hold-talk" id="btn-hold-talk" aria-pressed="false" title="Hold to dictate (browser speech recognition)">
-          <span class="mic-icon" aria-hidden="true">&#127908;</span>
-          <span id="btn-hold-talk-label">Hold to talk</span>
-        </button>
-        <div class="chat-voice-hint" id="chat-voice-hint">Chrome / Edge recommended. Mic permission required.</div>
-      </div>
-      <div class="chat-toolbar">
-        <button type="button" class="btn-text-ghost" id="btn-clear-chat">Clear conversation</button>
-      </div>
-    </div>
+    </section>
   </aside>
 </div>
 
-<!-- MTTR SPLASH -->
 <div class="mttr-splash" id="mttr-splash">
-  <div class="mttr-before">45 minutes</div>
+  <div class="mttr-before">人工复盘 45 min</div>
   <div class="mttr-arrow">&#x2193;</div>
-  <div class="mttr-after" id="mttr-time">28 seconds</div>
-  <div class="mttr-label">Creative-level MER / ROAS → 加钱 or 减钱, grounded in the graph.</div>
+  <div class="mttr-after" id="mttr-time">—</div>
+  <div class="mttr-label">结构化归因 + ChatBI：把创意级加减仓决策压缩到一次对话闭环。</div>
 </div>
 
-<!-- SCRIPTS -->
 <script src="https://unpkg.com/3d-force-graph@1"></script>
 <script src="https://unpkg.com/neo4j-driver@5"></script>
 <script>
@@ -1607,7 +1611,7 @@ async function streamAgentFromApi() {
   const ta = document.getElementById('agent-query');
   const content = (ta && ta.value || '').trim();
   if (!content) {
-    addChatToastError('Type a message to send.');
+    addChatToastError('请先输入要分析的问题。');
     return;
   }
 
@@ -1685,7 +1689,7 @@ async function streamAgentFromApi() {
       finalizeAssistantStreamBlock();
     }
     streamAgentAbort = null;
-    if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
+    if (btn) { btn.disabled = false; btn.textContent = '发送'; }
   }
 }
 
@@ -1703,7 +1707,7 @@ function addAgentWelcome() {
   const el = document.createElement('div');
   el.className = 'stream-welcome agent-line';
   el.innerHTML =
-    '<strong>DeepChatBI Attribution</strong> — ask which <strong>Creative</strong> should 加钱 or 减钱 using ROAS / MER / journey context.<span class="hint">Load the graph, then try <strong>SIMULATE BUDGET REVIEW</strong>.</span>';
+    '<strong>ChatBI</strong> 已就绪 — 可直接询问<strong>广告预算</strong>、<strong>创意加减仓（加钱/减钱）</strong>、ROAS/MER、渠道归因等。<span class="hint">右侧为 Neo4j 归因图谱与创意信号；也可点击「场景演练」体验演示流程。</span>';
   appendChatTurn('system', el);
 }
 
@@ -2078,6 +2082,19 @@ async function approveFix() {
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+function updateKpiStripFromGraph() {
+  const rp = graphData.nodes.find(n => n.type === 'ReportPeriod');
+  const spendEl = document.getElementById('kpi-spend');
+  const roasEl = document.getElementById('kpi-roas');
+  if (!spendEl || !roasEl) return;
+  if (rp && rp.totalAdsSpend != null && rp.totalAdsSpend !== '') {
+    spendEl.textContent = '$' + Number(rp.totalAdsSpend).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  if (rp && rp.blendedRoas != null && rp.blendedRoas !== '') {
+    roasEl.textContent = Number(rp.blendedRoas).toLocaleString(undefined, { maximumFractionDigits: 3 });
+  }
+}
+
 // ============================================================
 // INIT
 // ============================================================
@@ -2088,6 +2105,7 @@ async function init() {
   const data = await fetchGraph();
   renderGraph(data);
   renderAlertFeedFromGraph();
+  updateKpiStripFromGraph();
 }
 
 wireChatComposer();
