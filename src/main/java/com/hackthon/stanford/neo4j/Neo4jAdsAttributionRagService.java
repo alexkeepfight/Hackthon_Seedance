@@ -196,10 +196,8 @@ public class Neo4jAdsAttributionRagService {
         if (v.isNull()) {
             return "";
         }
-        if (v.type().name().contains("FLOAT") || v.type().name().contains("INTEGER")) {
-            return String.valueOf(v.asDouble());
-        }
-        return v.asObject().toString();
+        Object o = v.asObject();
+        return o == null ? "" : o.toString();
     }
 
     public Map<String, Object> buildContextPayload(String userQuery, int limit) {
