@@ -149,7 +149,7 @@ public class AgentController {
         }
         AgentStreamChunk effective = applySreLayers(req, sreBrain);
         log.info("/stream/v5 GET -> chunk: {}", JSON.toJSONString(effective));
-        if (deepChatBiApi) {
+        if (true) {
             log.info("streamViaDeepChatBiApi (GET): {}", JSON.toJSONString(effective));
             return streamViaDeepChatBiApi(effective);
         }
