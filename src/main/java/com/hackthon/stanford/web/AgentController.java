@@ -149,7 +149,7 @@ public class AgentController {
         }
         AgentStreamChunk effective = applySreLayers(req, sreBrain);
         log.info("/stream/v5 GET -> chunk: {}", JSON.toJSONString(effective));
-        if (true) {
+        if (deepChatBiApi) {
             log.info("streamViaDeepChatBiApi (GET): {}", JSON.toJSONString(effective));
             return streamViaDeepChatBiApi(effective);
         }
@@ -201,7 +201,7 @@ public class AgentController {
         payload.put("lang", firstNonBlank(req.getLang(), "Chinese"));
         payload.put("datasourceId", req.getDatasourceId() == null ? 1 : req.getDatasourceId());
         payload.put("modelType", firstNonBlank(req.getModelType(), "QWEN"));
-        payload.put("agentName", firstNonBlank(req.getAgentName(), "TaskSystemV5StreamAgent"));
+        // payload.put("agentName", firstNonBlank(req.getAgentName(), "TaskSystemV5StreamAgent"));
         payload.put("content", firstNonBlank(req.getContent(), ""));
 
         final String jsonBody = JSON.toJSONString(payload);
