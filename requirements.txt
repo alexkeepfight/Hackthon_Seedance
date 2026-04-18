@@ -1,0 +1,8 @@
+byteplus-python-sdk-v2[ark]
+python-dotenv
+requests
+httpx
+typing_extensions
+pydantic
+sniffio
+distro
