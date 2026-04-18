@@ -34,3 +34,12 @@ logs/
 
 ### Local secrets (Neo4j password, etc.) ###
 application-local.properties
+.env
+
+### Seedance intro raw artifacts ###
+assets/intro/raw.mp4
+
+### Python ###
+.venv/
+__pycache__/
+*.pyc

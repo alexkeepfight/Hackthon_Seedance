@@ -1,0 +1,14 @@
+Model: dreamina-seedance-2-0-fast-260128
+Base URL: https://ark.ap-southeast.bytepluses.com/api/v3
+Timestamp: 2026-04-18T14:00:56.057622-07:00
+
+--- Prompt ---
+Cinematic slow-motion abstract scene: thin luminous data lines and flowing graph nodes emerge from deep slate-gray darkness, converging gracefully toward the center of the frame. Cool neutral color palette with off-white lines and soft amber accent highlights against a dark slate background. Shallow depth of field, subtle lens flare. Camera holds static. Premium, elegant, modern fintech aesthetic. --ratio 9:16 --resolution 720p --duration 5
+
+--- Full parameters (JSON) ---
+{
+  "model": "dreamina-seedance-2-0-fast-260128",
+  "base_url": "https://ark.ap-southeast.bytepluses.com/api/v3",
+  "prompt": "Cinematic slow-motion abstract scene: thin luminous data lines and flowing graph nodes emerge from deep slate-gray darkness, converging gracefully toward the center of the frame. Cool neutral color palette with off-white lines and soft amber accent highlights against a dark slate background. Shallow depth of field, subtle lens flare. Camera holds static. Premium, elegant, modern fintech aesthetic. --ratio 9:16 --resolution 720p --duration 5",
+  "timestamp": "2026-04-18T14:00:56.057622-07:00"
+}

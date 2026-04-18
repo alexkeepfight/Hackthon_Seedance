@@ -1,0 +1,49 @@
+2026-04-18 14:00:56 [INFO] ============================================================
+2026-04-18 14:00:56 [INFO] Ledger Intro Generator — Seedance 2.0
+2026-04-18 14:00:56 [INFO] ============================================================
+2026-04-18 14:00:56 [INFO] Saved prompt -> assets/intro/prompt.txt
+2026-04-18 14:00:56 [INFO] --- Attempt 1 / 3 ---
+2026-04-18 14:00:56 [INFO] Creating Seedance task...
+2026-04-18 14:00:56 [DEBUG] Request payload:
+{
+  "model": "dreamina-seedance-2-0-fast-260128",
+  "content": [
+    {
+      "type": "text",
+      "text": "Cinematic slow-motion abstract scene: thin luminous data lines and flowing graph nodes emerge from deep slate-gray darkness, converging gracefully toward the center of the frame. Cool neutral color palette with off-white lines and soft amber accent highlights against a dark slate background. Shallow depth of field, subtle lens flare. Camera holds static. Premium, elegant, modern fintech aesthetic. --ratio 9:16 --resolution 720p --duration 5"
+    }
+  ]
+}
+2026-04-18 14:00:57 [INFO] Task created: cgt-20260419050056-zlww5
+2026-04-18 14:00:57 [DEBUG] Create response:
+ContentGenerationTaskID(id='cgt-20260419050056-zlww5', safety_identifier=None)
+2026-04-18 14:00:57 [INFO] Poll [0s]: status=running  task_id=cgt-20260419050056-zlww5
+2026-04-18 14:00:57 [DEBUG] Poll response:
+ContentGenerationTask(id='cgt-20260419050056-zlww5', model='dreamina-seedance-2-0-fast-260128', safety_identifier=None, status='running', error=None, content=None, usage=None, subdivisionlevel=None, fileformat=None, frames=None, framespersecond=None, created_at=1776546056, updated_at=1776546056, seed=None, revised_prompt=None, service_tier='default', execution_expires_after=172800, generate_audio=True, duration=None, ratio=None, resolution=None, draft=False, draft_task_id=None)
+2026-04-18 14:01:03 [INFO] Poll [5s]: status=running  task_id=cgt-20260419050056-zlww5
+2026-04-18 14:01:03 [DEBUG] Poll response:
+ContentGenerationTask(id='cgt-20260419050056-zlww5', model='dreamina-seedance-2-0-fast-260128', safety_identifier=None, status='running', error=None, content=None, usage=None, subdivisionlevel=None, fileformat=None, frames=None, framespersecond=None, created_at=1776546056, updated_at=1776546056, seed=None, revised_prompt=None, service_tier='default', execution_expires_after=172800, generate_audio=True, duration=None, ratio=None, resolution=None, draft=False, draft_task_id=None)
+2026-04-18 14:01:10 [INFO] Poll [13s]: status=running  task_id=cgt-20260419050056-zlww5
+2026-04-18 14:01:10 [DEBUG] Poll response:
+ContentGenerationTask(id='cgt-20260419050056-zlww5', model='dreamina-seedance-2-0-fast-260128', safety_identifier=None, status='running', error=None, content=None, usage=None, subdivisionlevel=None, fileformat=None, frames=None, framespersecond=None, created_at=1776546056, updated_at=1776546056, seed=None, revised_prompt=None, service_tier='default', execution_expires_after=172800, generate_audio=True, duration=None, ratio=None, resolution=None, draft=False, draft_task_id=None)
+2026-04-18 14:01:19 [INFO] Poll [22s]: status=running  task_id=cgt-20260419050056-zlww5
+2026-04-18 14:01:19 [DEBUG] Poll response:
+ContentGenerationTask(id='cgt-20260419050056-zlww5', model='dreamina-seedance-2-0-fast-260128', safety_identifier=None, status='running', error=None, content=None, usage=None, subdivisionlevel=None, fileformat=None, frames=None, framespersecond=None, created_at=1776546056, updated_at=1776546056, seed=None, revised_prompt=None, service_tier='default', execution_expires_after=172800, generate_audio=True, duration=None, ratio=None, resolution=None, draft=False, draft_task_id=None)
+2026-04-18 14:01:31 [INFO] Poll [33s]: status=running  task_id=cgt-20260419050056-zlww5
+2026-04-18 14:01:31 [DEBUG] Poll response:
+ContentGenerationTask(id='cgt-20260419050056-zlww5', model='dreamina-seedance-2-0-fast-260128', safety_identifier=None, status='running', error=None, content=None, usage=None, subdivisionlevel=None, fileformat=None, frames=None, framespersecond=None, created_at=1776546056, updated_at=1776546056, seed=None, revised_prompt=None, service_tier='default', execution_expires_after=172800, generate_audio=True, duration=None, ratio=None, resolution=None, draft=False, draft_task_id=None)
+2026-04-18 14:01:46 [INFO] Poll [49s]: status=running  task_id=cgt-20260419050056-zlww5
+2026-04-18 14:01:46 [DEBUG] Poll response:
+ContentGenerationTask(id='cgt-20260419050056-zlww5', model='dreamina-seedance-2-0-fast-260128', safety_identifier=None, status='running', error=None, content=None, usage=None, subdivisionlevel=None, fileformat=None, frames=None, framespersecond=None, created_at=1776546056, updated_at=1776546056, seed=None, revised_prompt=None, service_tier='default', execution_expires_after=172800, generate_audio=True, duration=None, ratio=None, resolution=None, draft=False, draft_task_id=None)
+2026-04-18 14:02:02 [INFO] Poll [64s]: status=running  task_id=cgt-20260419050056-zlww5
+2026-04-18 14:02:02 [DEBUG] Poll response:
+ContentGenerationTask(id='cgt-20260419050056-zlww5', model='dreamina-seedance-2-0-fast-260128', safety_identifier=None, status='running', error=None, content=None, usage=None, subdivisionlevel=None, fileformat=None, frames=None, framespersecond=None, created_at=1776546056, updated_at=1776546056, seed=None, revised_prompt=None, service_tier='default', execution_expires_after=172800, generate_audio=True, duration=None, ratio=None, resolution=None, draft=False, draft_task_id=None)
+2026-04-18 14:02:17 [INFO] Poll [80s]: status=succeeded  task_id=cgt-20260419050056-zlww5
+2026-04-18 14:02:17 [DEBUG] Poll response:
+ContentGenerationTask(id='cgt-20260419050056-zlww5', model='dreamina-seedance-2-0-fast-260128', safety_identifier=None, status='succeeded', error=None, content=Content(video_url='https://ark-acg-ap-southeast-1.tos-ap-southeast-1.volces.com/dreamina-seedance-2-0-fast/02177654605690800000000000000000000ffffc0a88c94171f7a.mp4?X-Tos-Algorithm=TOS4-HMAC-SHA256&X-Tos-Credential=<REDACTED>&X-Tos-Date=20260418T210206Z&X-Tos-Expires=86400&X-Tos-Signature=<REDACTED>&X-Tos-SignedHeaders=host', last_frame_url=None, file_url=None), usage=Usage(completion_tokens=108900, total_tokens=108900), subdivisionlevel=None, fileformat=None, frames=None, framespersecond=24, created_at=1776546056, updated_at=1776546133, seed=46801, revised_prompt=None, service_tier='default', execution_expires_after=172800, generate_audio=True, duration=5, ratio='9:16', resolution='720p', draft=False, draft_task_id=None)
+2026-04-18 14:02:17 [INFO] Downloading video from https://ark-acg-ap-southeast-1.tos-ap-southeast-1.volces.com/dreamina-seedance-2-0-fast/02177654605690800000000000000000000ffffc0a88c94171f7a.mp4?X-Tos-Algorithm=TOS4-HMAC-SHA256&X-Tos-Credential=<REDACTED>&X-Tos-Date=20260418T210206Z&X-Tos-Expires=86400&X-Tos-Signature=<REDACTED>&X-Tos-SignedHeaders=host
+2026-04-18 14:02:22 [INFO] Downloaded 1.92 MB -> assets/intro/raw.mp4
+2026-04-18 14:02:22 [INFO] FFmpeg command: ffmpeg -y -i assets/intro/raw.mp4 -t 3.0 -vf fade=t=out:st=2.5:d=0.5 -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p -an assets/intro/intro.mp4
+2026-04-18 14:02:23 [INFO] Post-processed video -> assets/intro/intro.mp4
+2026-04-18 14:02:23 [INFO] SUCCESS — intro ready at assets/intro/intro.mp4 (FFmpeg took 0.8s)
+2026-04-18 14:02:23 [INFO] Tell Ashish: Intro ready, file at assets/intro/intro.mp4
