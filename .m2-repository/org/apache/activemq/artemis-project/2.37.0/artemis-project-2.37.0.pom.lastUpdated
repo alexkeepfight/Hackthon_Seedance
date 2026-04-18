@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Sat Apr 18 16:41:51 PDT 2026
+@default-maven-default-http-blocker-http\://0.0.0.0/.lastUpdated=1776555709903
+http\://0.0.0.0/.error=Could not transfer artifact org.apache.activemq\:artemis-project\:pom\:2.37.0 from/to maven-default-http-blocker (http\://0.0.0.0/)\: Blocked mirror for repositories\: [repository.springframework.maven.release (http\://maven.springframework.org/milestone/, default, releases+snapshots), org.springframework (http\://maven.springframework.org/snapshot, default, releases+snapshots), spring-milestone (http\://repo.spring.io/libs-milestone, default, releases+snapshots), spring-release (http\://repo.spring.io/libs-release, default, releases+snapshots), release (http\://repo.renrenaiche.cn/nexus/content/groups/public/, default, releases+snapshots)]
+https\://maven.aliyun.com/repository/public/.lastUpdated=1776555711015

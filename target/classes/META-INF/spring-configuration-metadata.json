@@ -4,6 +4,16 @@
       "name": "anthropic",
       "type": "com.hackthon.stanford.config.AnthropicProperties",
       "sourceType": "com.hackthon.stanford.config.AnthropicProperties"
+    },
+    {
+      "name": "dashscope",
+      "type": "com.hackthon.stanford.config.DashScopeProperties",
+      "sourceType": "com.hackthon.stanford.config.DashScopeProperties"
+    },
+    {
+      "name": "ionrouter",
+      "type": "com.hackthon.stanford.config.IonRouterProperties",
+      "sourceType": "com.hackthon.stanford.config.IonRouterProperties"
     }
   ],
   "properties": [
@@ -54,6 +64,87 @@
       "type": "java.lang.String",
       "sourceType": "com.hackthon.stanford.config.AnthropicProperties",
       "defaultValue": "2023-06-01"
+    },
+    {
+      "name": "dashscope.api-key",
+      "type": "java.lang.String",
+      "sourceType": "com.hackthon.stanford.config.DashScopeProperties",
+      "defaultValue": ""
+    },
+    {
+      "name": "dashscope.base-url",
+      "type": "java.lang.String",
+      "description": "Full URL including path, e.g. {@code ...\/compatible-mode\/v1\/chat\/completions}",
+      "sourceType": "com.hackthon.stanford.config.DashScopeProperties",
+      "defaultValue": "https:\/\/dashscope.aliyuncs.com\/compatible-mode\/v1\/chat\/completions"
+    },
+    {
+      "name": "dashscope.connect-timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.hackthon.stanford.config.DashScopeProperties",
+      "defaultValue": 60
+    },
+    {
+      "name": "dashscope.max-tokens",
+      "type": "java.lang.Integer",
+      "sourceType": "com.hackthon.stanford.config.DashScopeProperties",
+      "defaultValue": 30000
+    },
+    {
+      "name": "dashscope.model",
+      "type": "java.lang.String",
+      "sourceType": "com.hackthon.stanford.config.DashScopeProperties",
+      "defaultValue": "qwen-max"
+    },
+    {
+      "name": "dashscope.read-timeout-seconds",
+      "type": "java.lang.Integer",
+      "description": "Total request timeout for non-streaming completion",
+      "sourceType": "com.hackthon.stanford.config.DashScopeProperties",
+      "defaultValue": 300
+    },
+    {
+      "name": "dashscope.top-p",
+      "type": "java.lang.Double",
+      "sourceType": "com.hackthon.stanford.config.DashScopeProperties",
+      "defaultValue": 0.1
+    },
+    {
+      "name": "ionrouter.api-key",
+      "type": "java.lang.String",
+      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
+      "defaultValue": ""
+    },
+    {
+      "name": "ionrouter.base-url",
+      "type": "java.lang.String",
+      "description": "Full URL including path.",
+      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
+      "defaultValue": "https:\/\/api.ionrouter.io\/v1\/chat\/completions"
+    },
+    {
+      "name": "ionrouter.connect-timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
+      "defaultValue": 30
+    },
+    {
+      "name": "ionrouter.model",
+      "type": "java.lang.String",
+      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
+      "defaultValue": "qwen3-30b-a3b"
+    },
+    {
+      "name": "ionrouter.read-timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
+      "defaultValue": 300
+    },
+    {
+      "name": "ionrouter.temperature",
+      "type": "java.lang.Double",
+      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
+      "defaultValue": 0.7
     }
   ],
   "hints": []

@@ -10,6 +10,9 @@
 /Users/a58/IdeaProjects/CursorV2/Hackthon_Seedance/src/main/java/com/hackthon/stanford/chat/enums/AgentAttributes.java
 /Users/a58/IdeaProjects/CursorV2/Hackthon_Seedance/src/main/java/com/hackthon/stanford/chat/enums/AgentStatus.java
 /Users/a58/IdeaProjects/CursorV2/Hackthon_Seedance/src/main/java/com/hackthon/stanford/config/AnthropicProperties.java
+/Users/a58/IdeaProjects/CursorV2/Hackthon_Seedance/src/main/java/com/hackthon/stanford/config/AnthropicStartupDiagnostic.java
+/Users/a58/IdeaProjects/CursorV2/Hackthon_Seedance/src/main/java/com/hackthon/stanford/config/DashScopeProperties.java
+/Users/a58/IdeaProjects/CursorV2/Hackthon_Seedance/src/main/java/com/hackthon/stanford/config/IonRouterProperties.java
 /Users/a58/IdeaProjects/CursorV2/Hackthon_Seedance/src/main/java/com/hackthon/stanford/config/StanfordAppConfig.java
 /Users/a58/IdeaProjects/CursorV2/Hackthon_Seedance/src/main/java/com/hackthon/stanford/config/WebMvcConfig.java
 /Users/a58/IdeaProjects/CursorV2/Hackthon_Seedance/src/main/java/com/hackthon/stanford/llm/AnthropicMessagesClient.java

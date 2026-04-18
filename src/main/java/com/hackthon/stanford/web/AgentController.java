@@ -112,7 +112,7 @@ public class AgentController {
     /**
      * 与 {@link #streamV5Post} 相同 SSE 契约；可用查询参数拼请求，或用 {@code payload} 传整条 {@link AgentStreamChunk} 的 JSON（需 URL 编码）。
      */
-    @GetMapping(value = "/stream/v5", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "/stream/v5", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> streamV5Get(
             @RequestParam(value = "payload", required = false) String payload,
             @RequestParam(value = "content", required = false) String content,
@@ -149,12 +149,41 @@ public class AgentController {
         }
         AgentStreamChunk effective = applySreLayers(req, sreBrain);
         log.info("/stream/v5 GET -> chunk: {}", JSON.toJSONString(effective));
-        if (deepChatBiApi) {
-            log.info("streamViaDeepChatBiApi (GET): {}", JSON.toJSONString(effective));
-            return streamViaDeepChatBiApi(effective);
-        }
-        boolean augmentGraph = graphRag || neoBrain;
-        return streamV5Entity(effective, augmentGraph, graphLimit);
+        return runHardcodedIonRouterCurlViaProcess();
+    }
+
+    /**
+     * Exact {@code curl} the user specified (hardcoded); stdout is returned as the HTTP body (JSON).
+     */
+    private static ResponseEntity<StreamingResponseBody> runHardcodedIonRouterCurlViaProcess() {
+        StreamingResponseBody body = outputStream -> {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "curl",
+                    "-sS",
+                    "-N",
+                    "https://api.ionrouter.io/v1/chat/completions",
+                    "-H",
+                    "Authorization: Bearer sk-23a4af7f666f5e97d42c44b1507b0b7e19c1ff758fbb4a54",
+                    "-H",
+                    "Content-Type: application/json",
+                    "-d",
+                    "{\"model\":\"qwen3-30b-a3b\",\"messages\":[{\"role\":\"user\",\"content\":\"你是谁啊\"}],\"stream\":false,\"temperature\":0.7}");
+            pb.redirectErrorStream(true);
+            try {
+                Process p = pb.start();
+                try (InputStream in = p.getInputStream()) {
+                    in.transferTo(outputStream);
+                }
+                p.waitFor();
+            } catch (Exception e) {
+                String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+                outputStream.write(msg.getBytes(StandardCharsets.UTF_8));
+            }
+        };
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .cacheControl(CacheControl.noCache())
+                .body(body);
     }
 
     private static String firstNonBlank(String a, String b) {
