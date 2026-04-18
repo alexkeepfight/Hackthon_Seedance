@@ -44,16 +44,21 @@ public class Neo4jAdsAttributionGraphBootstrap {
     }
 
     /**
-     * Drops legacy SRE + any prior ads constraints, deletes all nodes, then schema + seed (three write txs).
+     * Drops constraints, deletes all nodes, creates constraints, seeds — each phase in its own write transaction.
+     * Neo4j forbids data writes in the same transaction after schema DDL (e.g. DROP CONSTRAINT then DETACH DELETE).
      */
     public Map<String, Object> seedAll() {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("ok", false);
         try (Session session = openSession()) {
             session.executeWrite(tx -> {
-                for (String cypher : wipeStatements()) {
+                for (String cypher : wipeDropConstraintStatements()) {
                     tx.run(cypher);
                 }
+                return null;
+            });
+            session.executeWrite(tx -> {
+                tx.run("MATCH (n) DETACH DELETE n");
                 return null;
             });
             session.executeWrite(tx -> {
@@ -78,7 +83,8 @@ public class Neo4jAdsAttributionGraphBootstrap {
         return out;
     }
 
-    private static String[] wipeStatements() {
+    /** Schema-only drops; must not share a write tx with {@code DETACH DELETE}. */
+    private static String[] wipeDropConstraintStatements() {
         return new String[] {
                 "DROP CONSTRAINT incident_id IF EXISTS",
                 "DROP CONSTRAINT service_id IF EXISTS",
@@ -92,7 +98,6 @@ public class Neo4jAdsAttributionGraphBootstrap {
                 "DROP CONSTRAINT customer_session_id IF EXISTS",
                 "DROP CONSTRAINT touch_channel_id IF EXISTS",
                 "DROP CONSTRAINT report_period_id IF EXISTS",
-                "MATCH (n) DETACH DELETE n",
         };
     }
 
