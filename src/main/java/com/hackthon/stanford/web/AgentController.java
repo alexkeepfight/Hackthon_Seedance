@@ -149,7 +149,8 @@ public class AgentController {
         }
         AgentStreamChunk effective = applySreLayers(req, sreBrain);
         log.info("/stream/v5 GET -> chunk: {}", JSON.toJSONString(effective));
-        if (deepChatBiApi) {
+        if (true) {
+            log.info("调用streamViaDeepChatBiApi: {}", JSON.toJSONString(effective));
             return streamViaDeepChatBiApi(effective);
         }
         boolean augmentGraph = graphRag || neoBrain;
