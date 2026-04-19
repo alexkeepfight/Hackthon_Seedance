@@ -61,158 +61,7 @@ public class AgentController {
 
     private static final URI DEEPCHATBI_STREAM_V5 = URI.create("http://45.78.204.144:9090/api/chat/stream/v5");
 
-    String myPromtp = """
-            🔹 Creative Budget Decision Framework (Standard Template)
-1. Creative Overview
-
-Creative ID: <creative_id>
-Channel: <Google / Meta / etc>
-Creative Type: <DCO / Brand / Carousel / Video / Static>
-Objective: <Conversion / Traffic / Awareness>
-
-2. Key Performance Metrics
-
-(Define a consistent metric schema)
-
-Spend: $X
-Revenue: $X
-ROAS: X.X
-CPA: $X
-CTR: X%
-CVR: X%
-Impressions: X
-Frequency: X.X (if applicable)
-3. Benchmark Comparison
-
-(Compare against account / campaign / category baseline)
-
-ROAS vs Benchmark: +X% / -X%
-CPA vs Target: +X% / -X%
-CTR vs Avg: +X% / -X%
-
-Interpretation:
-
-Outperforming / On par / Underperforming
-4. Trend Analysis (Time-based)
-ROAS trend: Increasing / Stable / Declining
-CPA trend: Improving / Worsening
-Spend efficiency: Scaling well / Saturating
-
-Optional:
-
-Learning phase? Yes / No
-Volatility level: High / Medium / Low
-5. Signal Diagnosis (Why it performs this way)
-Positive Signals
-High CTR → strong creative hook
-High CVR → strong landing page alignment
-Stable ROAS at scale → scalable creative
-Negative Signals
-High CTR but low CVR → mismatch intent
-High CPA → poor audience targeting or fatigue
-Declining ROAS → saturation or competition
-6. Budget Decision Logic
-✅ Scale Up
-
-Conditions:
-
-ROAS > target AND stable or improving
-CPA within acceptable range
-No strong fatigue signals
-
-Action:
-
-Increase budget by +20% ~ +50%
-Expand audience / placements if applicable
-⚖️ Maintain
-
-Conditions:
-
-ROAS near target
-Mixed or uncertain signals
-Still in learning phase
-
-Action:
-
-Keep budget stable
-Continue monitoring
-Run A/B tests
-❌ Reduce / Pause
-
-Conditions:
-
-ROAS significantly below target
-CPA too high
-Negative trend over time
-
-Action:
-
-Decrease budget by -30% ~ -70% OR pause
-Investigate creative / targeting issues
-7. Final Recommendation (LLM Output Format)
-
-Decision: Scale / Maintain / Reduce
-
-Budget Change: +X% / 0% / -X%
-
-Confidence Level: High / Medium / Low
-
-Reasoning:
-
-This creative shows <key performance summary>. Compared to benchmark, it is <outperforming/underperforming>. The trend indicates <trend>, suggesting <core insight>. Therefore, the recommended action is to <decision>.
-
-8. Example Outputs for Your Creatives
-Example 1: cr-adlyze-google-dco
-
-Decision: Scale
-Budget Change: +30%
-Confidence: High
-
-Reasoning:
-
-This DCO creative demonstrates strong ROAS and consistent performance above benchmark. CTR and CVR indicate strong personalization effectiveness. The upward trend suggests scalability, so increasing budget is recommended.
-
-Example 2: cr-adlyze-google-brand
-
-Decision: Maintain
-Budget Change: 0%
-Confidence: Medium
-
-Reasoning:
-
-This brand creative shows stable performance with ROAS near target but limited conversion efficiency. As it supports upper-funnel engagement, maintaining budget while testing variations is appropriate.
-
-Example 3: cr-adlyze-meta-carousel
-
-Decision: Reduce
-Budget Change: -40%
-Confidence: High
-
-Reasoning:
-
-This carousel creative has declining ROAS and rising CPA, indicating fatigue and reduced engagement. Benchmark comparison shows underperformance, so budget reduction is recommended while iterating on new creatives.
-
-9. (Optional) Structured JSON Output (for system use)
-{
-  "creative_id": "cr-adlyze-meta-carousel",
-  "decision": "reduce",
-  "budget_change_pct": -40,
-  "confidence": "high",
-  "reasoning": "Declining ROAS and increasing CPA indicate performance deterioration and creative fatigue."
-}
-💡 Pro Tip (for your DeepChatBI system)
-
-You can standardize this into:
-
-Prompt Template → LLM
-Metrics → BigQuery
-Graph Context → Neo4j
-Final Output → Decision Engine
-
-If you want, I can next help you convert this into a 
-production-grade prompt (system + user + tool format) or a 
-Neo4j-driven causal reasoning layer.
-            """;
+    String myPromtp = "ve Budget Decision Framework Standard Template            1 Creative OverviewCreative ID <creative_id>Channel <Google or Meta or etc>Creative Type <DCO or Brand or Carousel or Video or Static>Objective <Conversion or Traffic or Awareness>  2 Key Performance MetricsDefine a consistent metric schemaSpend $XRevenue $XROAS X.XCPA $XCTR X percentCVR X percentImpressions XFrequency X.X if applicable   3 Benchmark ComparisonCompare against account campaign or category baseline        ROAS vs Benchmark plus X percent or minus X percentCPA vs Target plus X percent or minus X percentCTR vs Avg plus X percent or minus X percent          InterpretationOutperforming or On par or Underperforming         4 Trend Analysis Time basedROAS trend Increasing or Stable or DecliningCPA trend Improving or WorseningSpend efficiency Scaling well or Saturating           OptionalLearning phase Yes or NoVolatility level High or Medium or Low        5 Signal Diagnosis Why it performs this wayPositive SignalsHigh CTR means strong creative hookHigh CVR means strong landing page alignmentStable ROAS at scale means scalable creative      Negative SignalsHigh CTR but low CVR means mismatch intentHigh CPA means poor audience targeting or fatigueDeclining ROAS means saturation or competition       6 Budget Decision Logic       Scale UpConditionsROAS greater than target and stable or improvingCPA within acceptable rangeNo strong fatigue signals        ActionIncrease budget by plus 20 percent to plus 50 percentExpand audience or placements if applicable     MaintainConditionsROAS near targetMixed or uncertain signalsStill in learning phase                       ActionKeep budget stableContinue monitoringRun AB tests                       Reduce or PauseConditionsROAS significantly below targetCPA too highNegative trend over time        ActionDecrease budget by minus 30 percent to minus 70 percent or pauseInvestigate creative or targeting issues          7 Final Recommendation LLM Output Format          Decision Scale or Maintain or ReduceBudget Change plus X percent or 0 percent or minus X percentConfidence Level High or Medium or Low        ReasoningThis creative shows key performance summary Compared to benchmark it is outperforming or underperforming The trend indicates trend suggesting core insight Therefore the recommended action is to decision         8 Example Outputs for Your Creatives           Example 1 cr adlyze google dcoDecision ScaleBudget Change plus 30 percentConfidence High        ReasoningThis DCO creative demonstrates strong ROAS and consistent performance above benchmark CTR and CVR indicate strong personalization effectiveness The upward trend suggests scalability so increasing budget is recommended           Example 2 cr adlyze google brandDecision MaintainBudget Change 0 percentConfidence Medium       ReasoningThis brand creative shows stable performance with ROAS near target but limited conversion efficiency As it supports upper funnel engagement maintaining budget while testing variations is appropriate            Example 3 cr adlyze meta carouselDecision ReduceBudget Change minus 40 percentConfidence High      ReasoningThis carousel creative has declining ROAS and rising CPA indicating fatigue and reduced engagement Benchmark comparison shows underperformance so budget reduction is recommended while iterating on new creatives      9 Optional Structured JSON Output for system use creative_id cr adlyze meta carouseldecision reducebudget_change_pct minus 40confidence highreasoning Declining ROAS and increasing CPA indicate performance deterioration and creative fatigue      Pro Tip for your DeepChatBI system      You can standardize this intoPrompt Template to LLMMetrics to BigQueryGraph Context to Neo4jFinal Output to Decision Engine        If you want I can next help you convert this into a production grade prompt system plus user plus tool format or a Neo4j driven causal reasoning layer";
     /**
      * Fixed persona: ads attribution / growth analytics (not generic small-talk).
      * Prepended to {@code skillsPrompt} so the LLM carries role, tone, and output shape.
@@ -305,14 +154,14 @@ Neo4j-driven causal reasoning layer.
         }
         AgentStreamChunk effective = applySreLayers(req, sreBrain);
         log.info("/stream/v5 GET -> chunk: {}", JSON.toJSONString(effective));
-        return runHardcodedIonRouterCurlViaProcess();
+        return runHardcodedIonRouterCurlViaProcess(content);
     }
 
     /**
      * Exact {@code curl} the user specified (hardcoded); parses OpenAI-shaped JSON and returns only
      * {@code choices[0].message.content} as plain text for the frontend.
      */
-    private static ResponseEntity<StreamingResponseBody> runHardcodedIonRouterCurlViaProcess() {
+    private static ResponseEntity<StreamingResponseBody> runHardcodedIonRouterCurlViaProcess(String input) {
         StreamingResponseBody body = outputStream -> {
             ProcessBuilder pb = new ProcessBuilder(
                     "curl",
@@ -324,7 +173,9 @@ Neo4j-driven causal reasoning layer.
                     "-H",
                     "Content-Type: application/json",
                     "-d",
-                    "{\"model\":\"qwen3-30b-a3b\",\"messages\":[{\"role\":\"user\",\"content\":\"你是谁啊\"}],\"stream\":false,\"temperature\":0.7}");
+                    "{\"model\":\"qwen3-30b-a3b\",\"messages\":[{\"role\":\"user\",\"content\":\""+input+"\"}],\"stream\":false,\"temperature\":0.7}"
+
+            );
             pb.redirectErrorStream(true);
             try {
                 Process p = pb.start();
