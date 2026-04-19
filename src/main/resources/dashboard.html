@@ -51,8 +51,12 @@
     align-items: center;
     gap: 12px;
   }
-  .app-logo {
-    font-size: 22px;
+  .app-logo-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
   }
   .app-header__brand-text {
     flex: 1;
@@ -668,7 +672,7 @@
 
 <header class="app-header">
   <div class="app-header__brand">
-    <span class="app-logo" aria-hidden="true">&#9889;</span>
+    <img class="app-logo-img" src="/deepchatbi-logo.png" width="36" height="36" alt="DeepChatBI" />
     <div class="app-header__brand-text">
       <div class="app-header__title-row">
         <div class="app-title">Ad Budget Copilot · Powered by DeepChatBI</div>
