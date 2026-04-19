@@ -9,11 +9,6 @@
       "name": "dashscope",
       "type": "com.hackthon.stanford.config.DashScopeProperties",
       "sourceType": "com.hackthon.stanford.config.DashScopeProperties"
-    },
-    {
-      "name": "ionrouter",
-      "type": "com.hackthon.stanford.config.IonRouterProperties",
-      "sourceType": "com.hackthon.stanford.config.IonRouterProperties"
     }
   ],
   "properties": [
@@ -108,43 +103,6 @@
       "type": "java.lang.Double",
       "sourceType": "com.hackthon.stanford.config.DashScopeProperties",
       "defaultValue": 0.1
-    },
-    {
-      "name": "ionrouter.api-key",
-      "type": "java.lang.String",
-      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
-      "defaultValue": ""
-    },
-    {
-      "name": "ionrouter.base-url",
-      "type": "java.lang.String",
-      "description": "Full URL including path.",
-      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
-      "defaultValue": "https:\/\/api.ionrouter.io\/v1\/chat\/completions"
-    },
-    {
-      "name": "ionrouter.connect-timeout-seconds",
-      "type": "java.lang.Integer",
-      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
-      "defaultValue": 30
-    },
-    {
-      "name": "ionrouter.model",
-      "type": "java.lang.String",
-      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
-      "defaultValue": "qwen3-30b-a3b"
-    },
-    {
-      "name": "ionrouter.read-timeout-seconds",
-      "type": "java.lang.Integer",
-      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
-      "defaultValue": 300
-    },
-    {
-      "name": "ionrouter.temperature",
-      "type": "java.lang.Double",
-      "sourceType": "com.hackthon.stanford.config.IonRouterProperties",
-      "defaultValue": 0.7
     }
   ],
   "hints": []

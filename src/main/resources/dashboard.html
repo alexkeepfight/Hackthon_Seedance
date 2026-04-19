@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -563,8 +563,8 @@
   <div class="app-header__brand">
     <span class="app-logo" aria-hidden="true">&#9889;</span>
     <div>
-      <div class="app-title">广告预算管理</div>
-      <div class="app-sub">DeepChatBI · 归因图谱驱动 · ChatBI</div>
+      <div class="app-title">Ad Budget Copilot</div>
+      <div class="app-sub">DeepChatBI · Attribution graph · Neo4j-backed</div>
     </div>
   </div>
   <div class="app-header__meta">
@@ -580,7 +580,8 @@
         <div>
           <h1 class="chatbi-title">ChatBI</h1>
           <p class="chatbi-desc">
-            自然语言查询投放花费、ROAS/MER、创意加减仓（加钱/减钱）、渠道与订单归因；默认开启 Graph RAG 引用 Neo4j 知识图谱事实。
+            Ask in natural language about spend, ROAS/MER, creative scale vs pause, channels and order attribution.
+            Graph RAG uses Neo4j facts by default.
           </p>
         </div>
         <span class="chip">Live · SSE</span>
@@ -588,38 +589,38 @@
       <div id="chat-messages" class="chat-messages chatbi-messages"></div>
       <div class="chat-composer chatbi-composer">
         <details class="chat-advanced">
-          <summary>高级 · API 与检索</summary>
+          <summary>Advanced · API &amp; retrieval</summary>
           <div class="chat-advanced__inner">
             <div>
-              <label for="api-base">后端 API Base（留空则当前域名）</label>
+              <label for="api-base">API base URL (leave blank for this origin)</label>
               <input type="text" id="api-base" placeholder="http://localhost:8080" value="" autocomplete="off" />
             </div>
             <div style="display:flex;align-items:center;gap:10px">
               <label for="graph-limit">graphLimit</label>
-              <input type="number" id="graph-limit" style="width:72px" min="1" max="10" placeholder="默认" title="1–10" />
+              <input type="number" id="graph-limit" style="width:72px" min="1" max="10" placeholder="default" title="1–10" />
             </div>
             <div class="chat-advanced__opts">
-              <label><input type="checkbox" id="opt-graph-rag" checked /> graphRag（图谱增强）</label>
+              <label><input type="checkbox" id="opt-graph-rag" checked /> graphRag (graph augmentation)</label>
               <label><input type="checkbox" id="opt-neo-brain" /> neoBrain</label>
-              <label><input type="checkbox" id="opt-sre-brain" /> sreBrain（遗留 playbook）</label>
-              <label><input type="checkbox" id="opt-deepchatbi-api" /> DeepChatBIAPI（远程）</label>
+              <label><input type="checkbox" id="opt-sre-brain" /> sreBrain (legacy playbook)</label>
+              <label><input type="checkbox" id="opt-deepchatbi-api" /> DeepChatBI API (remote)</label>
             </div>
           </div>
         </details>
         <div class="chat-input-row">
           <textarea id="agent-query" rows="3"
-            placeholder="例如：Google 品牌创意 ROAS&lt;1，建议减预算吗？哪些 Meta 创意值得加钱？"></textarea>
-          <button type="button" class="btn-send" id="btn-send-chat">发送</button>
+            placeholder="e.g. Cut budget on Google brand creatives with ROAS&lt;1? Which Meta creatives should we scale?"></textarea>
+          <button type="button" class="btn-send" id="btn-send-chat">Send</button>
         </div>
         <div class="chat-voice-row">
-          <button type="button" class="btn-hold-talk" id="btn-hold-talk" aria-pressed="false" title="按住说话">
+          <button type="button" class="btn-hold-talk" id="btn-hold-talk" aria-pressed="false" title="Hold to talk">
             <span class="mic-icon" aria-hidden="true">&#127908;</span>
-            <span id="btn-hold-talk-label">按住说话</span>
+            <span id="btn-hold-talk-label">Hold to talk</span>
           </button>
-          <div class="chat-voice-hint" id="chat-voice-hint">推荐 Chrome / Edge，需麦克风权限。</div>
+          <div class="chat-voice-hint" id="chat-voice-hint">Chrome / Edge recommended; microphone permission required.</div>
         </div>
         <div class="chat-toolbar">
-          <button type="button" class="btn-text-ghost" id="btn-clear-chat">清空对话</button>
+          <button type="button" class="btn-text-ghost" id="btn-clear-chat">Clear chat</button>
         </div>
       </div>
     </section>
@@ -845,7 +846,7 @@ function looksLikeToolLogLine(s) {
   if (t.startsWith('[Tool round]')) return true;
   // Common agent log prefixes
   if (t.startsWith('Embed session:')) return true;
-  if (t.startsWith('SQL ') || t.startsWith('SQL执行') || t.startsWith('SQL 生成')) return true;
+  if (t.startsWith('SQL ') || t.startsWith('SQL execution') || t.startsWith('SQL generation')) return true;
   return false;
 }
 
@@ -1050,7 +1051,7 @@ async function streamAgentFromApi() {
   const ta = document.getElementById('agent-query');
   const content = (ta && ta.value || '').trim();
   if (!content) {
-    addChatToastError('请先输入要分析的问题。');
+    addChatToastError('Enter a question first.');
     return;
   }
 
@@ -1131,7 +1132,7 @@ async function streamAgentFromApi() {
       finalizeAssistantStreamBlock();
     }
     streamAgentAbort = null;
-    if (btn) { btn.disabled = false; btn.textContent = '发送'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
   }
 }
 
@@ -1149,7 +1150,7 @@ function addAgentWelcome() {
   const el = document.createElement('div');
   el.className = 'stream-welcome agent-line';
   el.innerHTML =
-    '<strong>ChatBI</strong> 已就绪 — 可直接询问<strong>广告预算</strong>、<strong>创意加减仓（加钱/减钱）</strong>、ROAS/MER、渠道归因等。<span class="hint">右侧为 Neo4j 归因图谱与创意信号；也可点击「场景演练」体验演示流程。</span>';
+    '<strong>ChatBI</strong> is ready — ask about <strong>ad budget</strong>, <strong>creative scale vs pause</strong>, ROAS/MER, channel attribution, and more. <span class="hint">Graph RAG is backed by Neo4j; tune options under Advanced.</span>';
   appendChatTurn('system', el);
 }
 
