@@ -61,7 +61,132 @@ public class AgentController {
 
     private static final URI DEEPCHATBI_STREAM_V5 = URI.create("http://45.78.204.144:9090/api/chat/stream/v5");
 
-    String myPromtp = "ve Budget Decision Framework Standard Template            1 Creative OverviewCreative ID <creative_id>Channel <Google or Meta or etc>Creative Type <DCO or Brand or Carousel or Video or Static>Objective <Conversion or Traffic or Awareness>  2 Key Performance MetricsDefine a consistent metric schemaSpend $XRevenue $XROAS X.XCPA $XCTR X percentCVR X percentImpressions XFrequency X.X if applicable   3 Benchmark ComparisonCompare against account campaign or category baseline        ROAS vs Benchmark plus X percent or minus X percentCPA vs Target plus X percent or minus X percentCTR vs Avg plus X percent or minus X percent          InterpretationOutperforming or On par or Underperforming         4 Trend Analysis Time basedROAS trend Increasing or Stable or DecliningCPA trend Improving or WorseningSpend efficiency Scaling well or Saturating           OptionalLearning phase Yes or NoVolatility level High or Medium or Low        5 Signal Diagnosis Why it performs this wayPositive SignalsHigh CTR means strong creative hookHigh CVR means strong landing page alignmentStable ROAS at scale means scalable creative      Negative SignalsHigh CTR but low CVR means mismatch intentHigh CPA means poor audience targeting or fatigueDeclining ROAS means saturation or competition       6 Budget Decision Logic       Scale UpConditionsROAS greater than target and stable or improvingCPA within acceptable rangeNo strong fatigue signals        ActionIncrease budget by plus 20 percent to plus 50 percentExpand audience or placements if applicable     MaintainConditionsROAS near targetMixed or uncertain signalsStill in learning phase                       ActionKeep budget stableContinue monitoringRun AB tests                       Reduce or PauseConditionsROAS significantly below targetCPA too highNegative trend over time        ActionDecrease budget by minus 30 percent to minus 70 percent or pauseInvestigate creative or targeting issues          7 Final Recommendation LLM Output Format          Decision Scale or Maintain or ReduceBudget Change plus X percent or 0 percent or minus X percentConfidence Level High or Medium or Low        ReasoningThis creative shows key performance summary Compared to benchmark it is outperforming or underperforming The trend indicates trend suggesting core insight Therefore the recommended action is to decision         8 Example Outputs for Your Creatives           Example 1 cr adlyze google dcoDecision ScaleBudget Change plus 30 percentConfidence High        ReasoningThis DCO creative demonstrates strong ROAS and consistent performance above benchmark CTR and CVR indicate strong personalization effectiveness The upward trend suggests scalability so increasing budget is recommended           Example 2 cr adlyze google brandDecision MaintainBudget Change 0 percentConfidence Medium       ReasoningThis brand creative shows stable performance with ROAS near target but limited conversion efficiency As it supports upper funnel engagement maintaining budget while testing variations is appropriate            Example 3 cr adlyze meta carouselDecision ReduceBudget Change minus 40 percentConfidence High      ReasoningThis carousel creative has declining ROAS and rising CPA indicating fatigue and reduced engagement Benchmark comparison shows underperformance so budget reduction is recommended while iterating on new creatives      9 Optional Structured JSON Output for system use creative_id cr adlyze meta carouseldecision reducebudget_change_pct minus 40confidence highreasoning Declining ROAS and increasing CPA indicate performance deterioration and creative fatigue      Pro Tip for your DeepChatBI system      You can standardize this intoPrompt Template to LLMMetrics to BigQueryGraph Context to Neo4jFinal Output to Decision Engine        If you want I can next help you convert this into a production grade prompt system plus user plus tool format or a Neo4j driven causal reasoning layer";
+    String myPromtp = """
+            🔹 Creative Budget Decision Framework (reference row: cr_adlyze_google_dco — last 30 days shop reporting)
+            1. Creative Overview
+
+            Creative ID: cr_adlyze_google_dco
+            Channel: Google Ads (Search + PMax overlap)
+            Creative Type: DCO / dynamic catalog
+            Objective: Purchase / conversion value
+
+            2. Key Performance Metrics (snapshot)
+
+            Spend: $18,420
+            Attributed revenue: $91,050
+            ROAS: 4.94 (revenue ÷ spend)
+            CPA: $38.20 (cost per purchase)
+            CTR: 2.35%
+            CVR: 4.15%
+            Impressions: 1,240,000
+            Frequency: 2.28
+
+            3. Benchmark Comparison (vs account baseline week of 2026-04-07)
+
+            Account ROAS baseline: 3.85 | Account CPA target: $41.00 | Account CTR avg: 2.10%
+
+            ROAS vs benchmark: +28.3%
+            CPA vs target: -6.8% (better than target)
+            CTR vs avg: +11.9%
+
+            Interpretation: Outperforming — ROAS and CTR above baseline; CPA below target cap.
+
+            4. Trend Analysis (Apr 1 → Apr 18, 2026)
+
+            ROAS trend: Increasing (+0.42 vs prior 14d)
+
+            CPA trend: Improving (-$4.10 vs prior 14d)
+
+            Spend efficiency: Scaling well — marginal ROAS holding while daily spend +12%
+
+            Learning phase? No (campaign exited learning on Apr 04)
+
+            Volatility level: Medium (σ ROAS 0.31 across weeks)
+
+            5. Signal Diagnosis
+
+            Positive signals observed for cr_adlyze_google_dco:
+            CTR 2.35% vs 2.10% avg → stronger hook / relevance
+
+            CVR 4.15% → PDP + offer alignment holding
+
+            ROAS 4.94 at $18.4k spend → efficiency not collapsing at scale
+
+            Risk signals to monitor on sister asset cr_adlyze_meta_carousel (not this row): high CTR pocket with CPA spike on Apr 14 (one-day anomaly) — watch audience overlap.
+
+            6. Budget Decision Logic
+
+            ✅ Scale Up — applies to cr_adlyze_google_dco given section 3–5
+
+            ROAS 4.94 > target band 3.6–4.2 and rising
+
+            CPA $38.20 < $41.00 cap
+
+            No fatigue pattern (frequency 2.28 < 3.0 guardrail)
+
+            Planned action: raise daily budget +28% for 7 days (within +20–50% band), cap frequency at 3.0 through placement exclusions if exceeded.
+
+            ⚖️ Maintain — pattern for cr_adlyze_google_brand
+
+            ROAS 3.92 vs baseline 3.85 (within ±5%); mixed upper-funnel assist
+
+            Hold spend; swap 2 headline variants (test IDs hb_042a / hb_042b)
+
+            ❌ Reduce / Pause — pattern for cr_adlyze_meta_carousel
+
+            ROAS slipped to 2.05 vs 3.85 baseline; CPA $63.40 vs $41 target
+
+            Cut daily budget -45% for 10 days; rebuild carousel cards C2-C4 before re-scale
+
+            7. Final Recommendation (filled example — cr_adlyze_google_dco)
+
+            Decision: Scale
+
+            Budget change: +28% (from $620/d to $794/d)
+
+            Confidence: High
+
+            Reasoning:
+            Spend $18.4k returned $91.1k revenue (ROAS 4.94), beating account ROAS 3.85 by +28% with CPA under the $41 target. Trends are up and frequency is controlled, so expanding budget preserves efficiency.
+
+            8. Cross-creative examples (same framework, real-style numbers)
+
+            Example A — cr_adlyze_google_dco
+
+            Decision: Scale | Budget: +28% | Confidence: High
+
+            Reasoning: DCO personalization driving 4.15% CVR and +12% CTR vs avg; scalable.
+
+            Example B — cr_adlyze_google_brand
+
+            Decision: Maintain | Budget: 0% | Confidence: Medium
+
+            Reasoning: ROAS 3.92 near baseline; upper-funnel support — keep spend, iterate copy.
+
+            Example C — cr_adlyze_meta_carousel
+
+            Decision: Reduce | Budget: -45% | Confidence: High
+
+            Reasoning: ROAS 2.05, CPA $63.4, rising frequency 3.4 — fatigue; cut and refresh.
+
+            9. Structured JSON (machine-readable mirror of Example C)
+
+            {
+              "creative_id": "cr_adlyze_meta_carousel",
+              "decision": "reduce",
+              "budget_change_pct": -45,
+              "confidence": "high",
+              "reasoning": "ROAS 2.05 vs account 3.85; CPA $63.40 vs $41.00 target; fatigue + overlap with Google DCO winners."
+            }
+
+            💡 Pro Tip (production wiring)
+
+            BigQuery fact table: shopify_orders_attributed + ad_platform_spend_daily
+
+            Neo4j graph: (:Creative)-[:PERFORMED_IN]->(:Campaign) with ROAS / budgetSignal edges
+
+            Orchestrator: rules above + LLM narrative in section 7
+            """;
     /**
      * Fixed persona: ads attribution / growth analytics (not generic small-talk).
      * Prepended to {@code skillsPrompt} so the LLM carries role, tone, and output shape.
@@ -163,6 +288,9 @@ public class AgentController {
      */
     private static ResponseEntity<StreamingResponseBody> runHardcodedIonRouterCurlViaProcess(String input) {
         StreamingResponseBody body = outputStream -> {
+            String userJson = JSON.toJSONString(input == null ? "" : input);
+            String jsonBody = "{\"model\":\"qwen3-30b-a3b\",\"messages\":[{\"role\":\"user\",\"content\":"
+                    + userJson + "}],\"stream\":false,\"temperature\":0.7}";
             ProcessBuilder pb = new ProcessBuilder(
                     "curl",
                     "-sS",
@@ -173,9 +301,7 @@ public class AgentController {
                     "-H",
                     "Content-Type: application/json",
                     "-d",
-                    "{\"model\":\"qwen3-30b-a3b\",\"messages\":[{\"role\":\"user\",\"content\":\""+input+"\"}],\"stream\":false,\"temperature\":0.7}"
-
-            );
+                    jsonBody);
             pb.redirectErrorStream(true);
             try {
                 Process p = pb.start();
