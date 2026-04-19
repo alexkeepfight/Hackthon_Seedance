@@ -1035,7 +1035,8 @@ function displayStreamEvent(raw, depth = 0, rid) {
   let o = tryParseChunkJson(str);
   if (!o || typeof o !== 'object') {
     const t = str.trim();
-    if (t.startsWith('{')) return;
+    /* Do not skip segments starting with `{`: markdown often contains JSON blocks that are not
+       complete JSON objects when split by SSE blank-line logic — those were silently dropped. */
     if (t) appendAnswerDeltaText(t);
     return;
   }
@@ -1085,12 +1086,21 @@ async function streamAgentFromApi() {
   try {
     const res = await fetch(url, {
       method: 'GET',
-      headers: { Accept: 'text/event-stream' },
+      headers: { Accept: 'text/event-stream, text/plain;q=0.9, */*;q=0.8' },
       signal: streamAgentAbort.signal,
       credentials: 'omit',
     });
     if (!res.ok) {
       setAnswerError(`Couldn’t reach the assistant (${res.status}). ${res.statusText || ''}`.trim());
+      return;
+    }
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    /* Whole-body plain text (e.g. IonRouter assistant markdown): must not split on \\n\\n like SSE. */
+    if (ct.includes('text/plain')) {
+      const fullText = await res.text();
+      if (activeStreamAssistantCtx && activeStreamAssistantCtx.requestId === rid) {
+        setAnswerMarkdown(renderBasicMarkdown(fullText));
+      }
       return;
     }
     const reader = res.body && res.body.getReader();
