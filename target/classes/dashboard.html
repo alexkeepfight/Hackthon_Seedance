@@ -288,7 +288,11 @@
     font-size: 14px;
     line-height: 1.65;
     color: var(--text);
+    max-width: 72ch;
+    letter-spacing: -0.011em;
   }
+  .chat-answer-body.markdown-body strong { font-weight: 600; color: #0f172a; }
+  .chat-answer-body.markdown-body em { font-style: italic; color: #475569; }
   .chat-answer-muted {
     margin: 0;
     font-size: 13px;
@@ -493,13 +497,78 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .md-h { font-weight: 700; color: var(--text); margin: 14px 0 8px; line-height: 1.3; }
+  /* Markdown blocks (assistant prose) */
+  .md-h { font-weight: 700; color: var(--text); margin: 20px 0 10px; line-height: 1.35; }
   .md-h:first-child { margin-top: 0; }
-  h2.md-h { font-size: 15px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-  h3.md-h { font-size: 14px; color: var(--accent); }
-  .md-p { margin: 0 0 10px; }
-  .md-list { margin: 8px 0 12px 18px; padding: 0; color: var(--text); }
-  .md-list li { margin: 4px 0; }
+  h1.md-h { font-size: 1.35rem; letter-spacing: -0.03em; color: #0f172a; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+  h2.md-h { font-size: 1.15rem; letter-spacing: -0.02em; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-top: 22px; }
+  h3.md-h { font-size: 1.05rem; color: var(--accent); margin-top: 18px; }
+  h4.md-h { font-size: 0.98rem; color: #334155; margin-top: 14px; font-weight: 650; }
+
+  .md-p { margin: 0 0 12px; line-height: 1.68; }
+
+  .md-list { margin: 10px 0 14px 1.25rem; padding: 0; color: var(--text); line-height: 1.62; }
+  .md-list li { margin: 6px 0; padding-left: 4px; }
+  .md-list ul.md-list,
+  .md-list ol.md-list { margin-top: 6px; margin-bottom: 6px; }
+  ol.md-list.md-ol { list-style: decimal; }
+  ul.md-list { list-style: disc; }
+
+  .md-hr {
+    border: none;
+    height: 1px;
+    margin: 22px 0;
+    background: linear-gradient(90deg, transparent, var(--border) 15%, var(--border) 85%, transparent);
+  }
+
+  .md-quote {
+    margin: 14px 0;
+    padding: 12px 16px 12px 18px;
+    border-left: 4px solid #38bdf8;
+    background: linear-gradient(90deg, #f0f9ff 0%, #f8fafc 40%);
+    border-radius: 0 12px 12px 0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  .md-quote .md-quote-p { margin: 0 0 8px; line-height: 1.65; color: #334155; }
+  .md-quote .md-quote-p:last-child { margin-bottom: 0; }
+
+  .md-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+    line-height: 1.5;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+  .md-table th,
+  .md-table td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .md-table th {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    font-weight: 600;
+    font-size: 12px;
+    color: #334155;
+  }
+  .md-table tbody tr:nth-child(even) { background: #fafbfc; }
+  .md-table tbody tr:hover { background: #f0f9ff44; }
+
+  a.md-a {
+    color: #0369a1;
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: color 0.15s ease;
+  }
+  a.md-a:hover { color: #0284c7; }
+
   .md-code {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
@@ -510,11 +579,12 @@
     color: #0f172a;
   }
   .md-fence {
-    margin: 12px 0;
-    padding: 12px 14px;
-    border-radius: 8px;
-    background: #0b122010;
-    border: 1px solid var(--border);
+    margin: 14px 0;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: linear-gradient(165deg, #f1f5f9 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
     overflow-x: auto;
   }
   .md-fence::before {
@@ -535,6 +605,12 @@
     color: var(--text);
     white-space: pre;
     display: block;
+  }
+
+  .md-del {
+    text-decoration: line-through;
+    opacity: 0.88;
+    color: var(--muted);
   }
 
   .mttr-splash {
@@ -638,6 +714,59 @@ function escapeHtml(s) {
   const d = document.createElement('div');
   d.textContent = String(s);
   return d.innerHTML;
+}
+
+function escapeAttr(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;');
+}
+
+function safeMarkdownHref(raw) {
+  const u = String(raw || '').trim();
+  if (!u) return '#';
+  if (/^javascript:/i.test(u) || /^data:/i.test(u)) return '#';
+  if (u.startsWith('#')) return u;
+  if (/^(https?:\/\/|mailto:)/i.test(u)) return u;
+  if (u.startsWith('/') || u.startsWith('./') || u.startsWith('../')) return u;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(u)) return '#';
+  return '#';
+}
+
+/** Inline Markdown: links, bold, italic, strike, inline code */
+function inlineMd(src) {
+  const s = String(src);
+  const segments = [];
+  const linkRe = /\[([^\]]*)\]\(([^)]*)\)/g;
+  let idx = 0;
+  let m;
+  while ((m = linkRe.exec(s)) !== null) {
+    if (m.index > idx) segments.push({ kind: 'inline', text: s.slice(idx, m.index) });
+    segments.push({ kind: 'link', label: m[1], href: m[2] });
+    idx = m.index + m[0].length;
+  }
+  if (idx < s.length) segments.push({ kind: 'inline', text: s.slice(idx) });
+  if (!segments.length) segments.push({ kind: 'inline', text: s });
+
+  return segments
+    .map((seg) => {
+      if (seg.kind === 'link') {
+        const href = escapeAttr(safeMarkdownHref(seg.href));
+        return `<a href="${href}" class="md-a" target="_blank" rel="noopener noreferrer">${formatInlineSpan(seg.label)}</a>`;
+      }
+      return formatInlineSpan(seg.text);
+    })
+    .join('');
+}
+
+function formatInlineSpan(raw) {
+  let t = escapeHtml(raw);
+  t = t.replace(/~~([^~]+)~~/g, '<del class="md-del">$1</del>');
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  t = t.replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');
+  return t;
 }
 
 /** Split buffer into completed SSE events (double newline); each event merges all `data:` lines with \n. */
@@ -914,11 +1043,70 @@ function dispatchStreamChunk(o, depth, rid) {
   if (isSkippableTelemetry(o)) return;
 }
 
-function inlineMd(s) {
-  let t = escapeHtml(s);
-  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  t = t.replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');
-  return t;
+function skipBlankLines(lines, idx) {
+  let i = idx;
+  while (i < lines.length && lines[i].trim() === '') i++;
+  return i;
+}
+
+function splitTableRow(line) {
+  let t = String(line).trim();
+  if (t.startsWith('|')) t = t.slice(1);
+  if (t.endsWith('|')) t = t.slice(0, -1);
+  return t.split('|').map((c) => c.trim());
+}
+
+/** GFM alignment row: | --- | :---: | ---: | */
+function isTableSeparatorLine(trimmed) {
+  const t = trimmed.trim();
+  if (!t.includes('|') || !/[-:]/.test(t)) return false;
+  return /^[\s|:\-+]+$/.test(t);
+}
+
+/**
+ * Pipe table with optional blank lines between header / separator / body (common in LLM output).
+ * Returns null if not a table; otherwise { html, endIndex } (endIndex = last consumed line index).
+ */
+function tryConsumeGfmTable(lines, startIdx) {
+  let i = skipBlankLines(lines, startIdx);
+  if (i >= lines.length) return null;
+  const headerLine = lines[i].trim();
+  if (!headerLine.includes('|')) return null;
+  const headerCells = splitTableRow(headerLine);
+  if (headerCells.length < 2) return null;
+
+  i = skipBlankLines(lines, i + 1);
+  if (i >= lines.length) return null;
+  const sepLine = lines[i].trim();
+  if (!isTableSeparatorLine(sepLine)) return null;
+
+  i = skipBlankLines(lines, i + 1);
+  const bodyRows = [];
+  while (i < lines.length) {
+    const ln = lines[i].trim();
+    if (ln === '') break;
+    if (!ln.includes('|')) break;
+    if (isTableSeparatorLine(ln)) break;
+    bodyRows.push(splitTableRow(ln));
+    i++;
+  }
+  if (bodyRows.length === 0) return null;
+
+  const colCount = headerCells.length;
+  let html = '<table class="md-table"><thead><tr>';
+  for (const h of headerCells) {
+    html += '<th scope="col">' + inlineMd(h) + '</th>';
+  }
+  html += '</tr></thead><tbody>';
+  for (const row of bodyRows) {
+    html += '<tr>';
+    for (let c = 0; c < colCount; c++) {
+      html += '<td>' + inlineMd(row[c] != null ? row[c] : '') + '</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return { html, endIndex: i - 1 };
 }
 
 function renderMdTextChunk(text) {
@@ -926,6 +1114,7 @@ function renderMdTextChunk(text) {
   const lines = text.replace(/\r\n/g, '\n').split('\n');
   const parts = [];
   let listKind = null;
+  let bqLines = [];
 
   function closeList() {
     if (listKind) {
@@ -934,13 +1123,48 @@ function renderMdTextChunk(text) {
     }
   }
 
+  function flushQuote() {
+    if (!bqLines.length) return;
+    const inner = bqLines
+      .map((q) => '<p class="md-quote-p">' + inlineMd(q) + '</p>')
+      .join('');
+    parts.push('<blockquote class="md-quote">' + inner + '</blockquote>');
+    bqLines = [];
+  }
+
+  function isHrLine(trimmed) {
+    return /^([-*_])(?:\1{2,})\s*$/.test(trimmed);
+  }
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
     if (trimmed === '') {
       closeList();
+      flushQuote();
       continue;
     }
+    const tbl = tryConsumeGfmTable(lines, i);
+    if (tbl) {
+      closeList();
+      flushQuote();
+      parts.push(tbl.html);
+      i = tbl.endIndex;
+      continue;
+    }
+    if (/^>\s?/.test(trimmed)) {
+      closeList();
+      bqLines.push(trimmed.replace(/^>\s?/, ''));
+      continue;
+    }
+    flushQuote();
+
+    if (isHrLine(trimmed)) {
+      closeList();
+      parts.push('<hr class="md-hr" />');
+      continue;
+    }
+
     const ul = /^[-*]\s+(.+)$/.exec(trimmed);
     const ol = /^(\d+)\.\s+(.+)$/.exec(trimmed);
     if (ul) {
@@ -959,7 +1183,9 @@ function renderMdTextChunk(text) {
       parts.push('<li>' + inlineMd(ol[2]) + '</li>');
     } else {
       closeList();
-      if (/^###\s+/.test(trimmed)) {
+      if (/^####\s+/.test(trimmed)) {
+        parts.push('<h4 class="md-h">' + inlineMd(trimmed.replace(/^####\s+/, '')) + '</h4>');
+      } else if (/^###\s+/.test(trimmed)) {
         parts.push('<h3 class="md-h">' + inlineMd(trimmed.replace(/^###\s+/, '')) + '</h3>');
       } else if (/^##\s+/.test(trimmed)) {
         parts.push('<h2 class="md-h">' + inlineMd(trimmed.replace(/^##\s+/, '')) + '</h2>');
@@ -967,7 +1193,7 @@ function renderMdTextChunk(text) {
         if (/^#\s*\d/.test(trimmed)) {
           parts.push('<p class="md-p">' + inlineMd(line) + '</p>');
         } else {
-          parts.push('<h2 class="md-h">' + inlineMd(trimmed.replace(/^#\s+/, '')) + '</h2>');
+          parts.push('<h1 class="md-h">' + inlineMd(trimmed.replace(/^#\s+/, '')) + '</h1>');
         }
       } else {
         parts.push('<p class="md-p">' + inlineMd(line) + '</p>');
@@ -975,6 +1201,7 @@ function renderMdTextChunk(text) {
     }
   }
   closeList();
+  flushQuote();
   return parts.join('');
 }
 
